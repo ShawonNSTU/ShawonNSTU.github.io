@@ -87,7 +87,7 @@ function vAbout(){
       '<p>Most of my work sits where software meets physical devices. I built a 3D floor-plan view that shows building managers every device in place, a map for managing many sites at once, and <a href="#lounge">showroom apps</a> that let visitors at IFA in Berlin and CES in Las Vegas control real appliances from their own phones without signing in.</p>'+
       '<p>Lately much of my time goes into AI agents. I architected the SmartThings Pro B2B AI Agent, which went live at Starbucks. I also designed a <a href="#quality-agent">code-quality agent</a> that opens, fixes and follows its own pull requests, and I set up an AI-assisted development environment for my team.</p>'+
       '<p>I also do research on device security. In December 2024 I proposed a <a href="#research">method to keep calls and private notifications on Bluetooth multipoint earbuds</a> from reaching the wrong listener. I\'m a co-inventor on two Samsung patents.</p>'+
-      '<p>Before Samsung I studied Information and Communication Engineering at Noakhali Science and Technology University. There I was Vice President of the programming club and set problems for university contests. I\'m now studying for an MS in Computer Science and Engineering at MIST.</p>'+
+      '<p>Before Samsung I studied Information and Communication Engineering at Noakhali Science and Technology University. There I was Vice President of the programming club and set problems for university contests.</p>'+
     '</div>'+
     '<aside class="about-card"><img src="assets/img/photo.webp" alt="Shaon Kanti Dhar" width="655" height="655"><dl class="kv">'+
       '<dt>Role</dt><dd>Project Leader, SmartThings Pro</dd><dt>Company</dt><dd>Samsung R&amp;D Institute Bangladesh</dd><dt>Team</dt><dd>12 engineers</dd><dt>Focus</dt><dd>IoT platforms, real-time web, AI agents</dd><dt>Based in</dt><dd>Dhaka, Bangladesh</dd></dl>'+
@@ -114,7 +114,6 @@ function vResearch(){
 
   '<section class="sec"><div class="sec-h"><div><span class="eyebrow">Earlier research</span><h2>From <em>university</em></h2></div></div><div class="list">'+
     '<a href="https://drive.google.com/file/d/1Dq82T5FAXLuBrWfTkniQ3sxqkyNYSYFE/"><span class="n">01</span><div><b>Checking user photos automatically in a travel app</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">My final-year project at NSTU, 2018 to 2019. The Travel Assistant app screened shared photos with Firebase ML Kit and Microsoft\'s content moderation API before publishing them.</div></div><span class="mono muted">Project report ↗</span></a>'+
-    '<div class="row"><span class="n">02</span><div><b>MS in Computer Science and Engineering</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">Ongoing at the Military Institute of Science and Technology (MIST), since 2021.</div></div><span class="mono muted">In progress</span></div>'+
   '</div></section>'+
   '</div>';
 }
@@ -156,7 +155,6 @@ function vRecord(){
   var jobs=JOBS.map(function(j,i){return '<div class="job"><span class="n">'+String(i+1).padStart(2,'0')+'</span><div><b>'+esc(j.when)+'</b><div class="mono muted" style="margin-top:4px">'+esc(j.where)+'</div></div><div><h3>'+esc(j.title)+'</h3><p class="org"><a href="'+j.orgUrl+'">'+esc(j.org)+'</a> · '+esc(j.proj)+'</p><ul>'+j.pts.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'+chips(j.sk,2)+'</div></div>'}).join('');
   var caps=CAPS.map(function(c,i){return '<div class="cap"><span class="mono muted">'+String(i+1).padStart(2,'0')+'</span><h3>'+esc(c[0])+'</h3>'+chips(c[1],2)+'</div>'}).join('');
   var edu='<div class="edu">'+
-   '<div class="ed"><span class="live"><i></i>In progress · 2021 – now</span><h3>MS in Computer Science &amp; Engineering</h3><p class="muted">Military Institute of Science and Technology (MIST)</p></div>'+
    '<div class="ed"><span class="mono muted">2015 – 2019</span><h3>BE in Information &amp; Communication Engineering</h3><p class="muted"><a href="https://nstu.edu.bd/">Noakhali Science and Technology University</a></p><p class="score">3.51 <small>/ 4.00 CGPA</small></p></div>'+
    '<div class="ed"><span class="mono muted">2012 – 2014</span><h3>HSC, Science</h3><p class="muted"><a href="https://fgc.gov.bd/">Feni Govt. College</a></p><p class="score">4.80 <small>/ 5.00</small></p></div>'+
    '<div class="ed"><span class="mono muted">2008 – 2012</span><h3>SSC, Science</h3><p class="muted"><a href="https://en.wikipedia.org/wiki/Feni_Government_Pilot_High_School">Feni Govt. Pilot High School</a></p><p class="score">5.00 <small>/ 5.00 · Golden</small></p></div></div>';

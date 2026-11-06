@@ -139,7 +139,6 @@ var NEWS=[
  ['Mar 2022','Promoted to Senior Software Engineer.'],
  ['Mar – Apr 2022','Icon of the Month for features in an Atlassian Jira plugin.'],
  ['Feb 2022','Samsung Global Software Certificate, Professional level.'],
- ['Apr 2021','Started an MS in Computer Science and Engineering at MIST.'],
  ['Oct 2019','Joined Samsung R&D Institute Bangladesh as a Software Engineer. Passed the Samsung Global Software Certificate, Advanced level.'],
  ['2019','Graduated from NSTU in Information and Communication Engineering, CGPA 3.51 out of 4.']
 ];
