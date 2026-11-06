@@ -26,3 +26,7 @@ Personal portfolio, served by GitHub Pages. Plain HTML, CSS and JavaScript, with
 ## Run locally
 
 Open `index.html` in a browser, or run `python3 -m http.server` and visit http://localhost:8000.
+
+## After an edit
+
+Bump the `?v=` number on the three file links in `index.html`, so visitors' browsers load the new files instead of cached copies.
