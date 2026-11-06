@@ -338,6 +338,16 @@ main{min-height:70vh}
 .rt-lv{display:grid; gap:10px}
 @media (max-width:860px){.lvl,.tl2{grid-template-columns:1fr 1fr}.research-teaser{grid-template-columns:1fr; padding:24px}.caps[style]{grid-template-columns:1fr 1fr!important}}
 @media (max-width:520px){.lvl,.tl2{grid-template-columns:1fr}.caps[style]{grid-template-columns:1fr!important}}
+/* cv */
+.cv-head{display:flex; justify-content:space-between; align-items:end; gap:24px; flex-wrap:wrap; padding:36px 0 24px}
+.cv-head h1{font-size:clamp(48px,7vw,96px); line-height:.95; margin:12px 0 10px}
+.cv-head h1 em{color:var(--accent)}
+.cv-actions{display:flex; gap:10px; flex-wrap:wrap}
+.cv-frame{border:1px solid var(--line); border-radius:20px; overflow:hidden; background:var(--card-2); height:calc(100vh - 140px); min-height:640px}
+.cv-frame object{width:100%; height:100%; display:block}
+.cv-fallback{height:100%; display:grid; place-content:center; justify-items:center; gap:14px; padding:24px; text-align:center}
+.cv-btn{text-decoration:none; color:var(--ink); font-weight:600}
+@media (max-width:640px){.cv-frame{height:auto; min-height:0}.cv-frame object{height:72vh}}
 /* contact */
 .contact{padding:56px 0 0; display:grid; grid-template-columns:1.2fr 1fr; gap:48px; align-items:start}
 .contact h1{font:400 clamp(52px,7vw,104px)/.95 var(--serif); letter-spacing:-.02em}

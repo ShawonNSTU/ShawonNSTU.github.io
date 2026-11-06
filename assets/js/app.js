@@ -52,7 +52,7 @@ function vHome(){
       '<span class="eyebrow">Project Leader / Full-stack engineer / AI Engineering</span>'+
       '<h1>I build <em>AI-enabled software</em> and the <em>agents</em> that power it.</h1>'+
       '<p class="lead">Seven years at Samsung R&amp;D Institute Bangladesh. I lead <b>12 engineers</b> on <b>SmartThings Pro</b>, Samsung\'s B2B building-management platform, and architected its AI agent that runs at <b>Starbucks</b>.</p>'+
-      '<div class="actions"><a class="btn dark" href="#work">Explore my work'+arrow+'</a><a class="btn" href="#record">Read my record</a></div>'+
+      '<div class="actions"><a class="btn dark" href="#work">Explore my work'+arrow+'</a><a class="btn" href="#cv">View CV</a><a class="btn" href="#record">Read my record</a></div>'+
       '<div class="portrait-chip"><img src="assets/img/photo.webp" alt="Shaon Kanti Dhar" width="52" height="52"><div><b style="font-weight:600">Shaon Kanti Dhar</b><div class="mono muted">Dhaka, Bangladesh · <span class="live"><i></i>Available for conversations</span></div></div></div>'+
     '</div>'+
     '<div class="plan"><div class="plan-head mono muted"><span>My projects, drawn as a floor plan</span><span>Pick a room</span></div>'+plan()+
@@ -112,6 +112,16 @@ function vResearch(){
   '<section class="sec"><div class="sec-h"><div><span class="eyebrow">Earlier research</span><h2>From <em>university</em></h2></div></div><div class="list">'+
     '<a href="https://drive.google.com/file/d/1Dq82T5FAXLuBrWfTkniQ3sxqkyNYSYFE/"><span class="n">01</span><div><b>Checking user photos automatically in a travel app</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">My final-year project at NSTU, 2018 to 2019. The Travel Assistant app screened shared photos with Firebase ML Kit and Microsoft\'s content moderation API before publishing them.</div></div><span class="mono muted">Project report ↗</span></a>'+
   '</div></section>'+
+  '</div>';
+}
+
+var CV_PDF='files/Shaon_Kanti_Dhar_CV.pdf';
+function vCV(){
+  return '<div class="wrap">'+
+  '<div class="cv-head"><div><span class="eyebrow">Curriculum vitae</span><h1 class="serif">My <em>CV</em></h1><p class="muted">Research interests, research and AI experience, work history, awards and skills. Three pages.</p></div>'+
+  '<div class="cv-actions"><a class="btn dark" href="'+CV_PDF+'" target="_blank" rel="noopener">Open in new tab'+arrow+'</a><a class="btn" href="'+CV_PDF+'" download>Download PDF</a></div></div>'+
+  '<div class="cv-frame"><object data="'+CV_PDF+'#view=FitH" type="application/pdf" aria-label="Shaon Kanti Dhar CV (PDF)">'+
+  '<div class="cv-fallback"><p>Your browser can\'t show the PDF here.</p><a class="btn dark" href="'+CV_PDF+'" target="_blank" rel="noopener">Open the CV'+arrow+'</a></div></object></div>'+
   '</div>';
 }
 
@@ -197,7 +207,7 @@ function vContact(){
 }
 
 /* ---------- router ---------- */
-var ROUTES={home:vHome, about:vAbout, research:vResearch, work:vWork, record:vRecord, recognition:vRecognition, contact:vContact};
+var ROUTES={cv:vCV, home:vHome, about:vAbout, research:vResearch, work:vWork, record:vRecord, recognition:vRecognition, contact:vContact};
 var main=document.getElementById('main'), clockT=null, rotT=null;
 function current(){var h=(location.hash||'').slice(1); return h||'home'}
 function render(){
@@ -294,7 +304,7 @@ function copyEmail(){try{navigator.clipboard.writeText(EMAIL).then(function(){to
 
 /* ---------- command palette ---------- */
 var cmd=document.getElementById('cmd'), q=document.getElementById('cmd-q'), ul=document.getElementById('cmd-list'), sel=0, items=[];
-var ALL=[['Home','Page','#home'],['About','Page','#about'],['Research','Page','#research'],['Work','Page','#work'],['Record','Page','#record'],['Recognition','Page','#recognition'],['Contact','Page','#contact']]
+var ALL=[['Home','Page','#home'],['About','Page','#about'],['Research','Page','#research'],['Work','Page','#work'],['Record','Page','#record'],['Recognition','Page','#recognition'],['Contact','Page','#contact'],['CV','Page','#cv']]
   .concat(PROJECTS.map(function(p){return [p.name,'Case study','#'+p.id]}))
   .concat([['Switch theme','Action',toggleTheme],['Copy email address','Action',copyEmail],['Open LinkedIn','Link','https://www.linkedin.com/in/shaon-kanti-dhar'],['Open LeetCode','Link','https://leetcode.com/u/shaon_kanti/']]);
 function draw(){
