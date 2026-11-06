@@ -49,8 +49,8 @@ function vHome(){
   return '<div class="wrap">'+sheet('A-00','Home')+
   '<section class="hero">'+
     '<div>'+
-      '<span class="eyebrow">Project Leader / Full-stack engineer / Samsung R&amp;D</span>'+
-      '<h1>I build <em>IoT platforms</em>, <em>showroom apps</em> and <em>AI agents</em> at Samsung.</h1>'+
+      '<span class="eyebrow">Project Leader / Full-stack engineer / AI Engineering</span>'+
+      '<h1>I build <em>AI-enabled software</em> and the <em>agents</em> that power it.</h1>'+
       '<p class="lead">Seven years at Samsung R&amp;D Institute Bangladesh. I lead <b>12 engineers</b> on <b>SmartThings Pro</b>, Samsung\'s B2B building-management platform, and architected its AI agent that runs at <b>Starbucks</b>.</p>'+
       '<div class="actions"><a class="btn dark" href="#work">Explore my work'+arrow+'</a><a class="btn" href="#record">Read my record</a></div>'+
       '<div class="portrait-chip"><img src="assets/img/photo.webp" alt="Shaon Kanti Dhar" width="52" height="52"><div><b style="font-weight:600">Shaon Kanti Dhar</b><div class="mono muted">Dhaka, Bangladesh · <span class="live"><i></i>Available for conversations</span></div></div></div>'+
