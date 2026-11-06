@@ -221,6 +221,7 @@ function render(){
     document.querySelectorAll('#nav a').forEach(function(a){a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+top); if(a.getAttribute('href')==='#'+top) a.setAttribute('aria-current','page')});
     document.title=(p?p.name+' · ':r!=='home'?r.charAt(0).toUpperCase()+r.slice(1)+' · ':'')+'Shaon Kanti Dhar';
     closeMenu(); wire();
+    track(p?p.id:r, document.title);
   };
   var done=false, run=function(){if(!done){done=true; go()}};
   if(!firstRender && document.startViewTransition && document.visibilityState==='visible' && !matchMedia('(prefers-reduced-motion: reduce)').matches){
@@ -230,6 +231,19 @@ function render(){
   firstRender=false;
 }
 var firstRender=true;
+
+/* ---------- analytics (GoatCounter: page, country, device, source) ---------- */
+var lastTracked=null;
+function track(page,title){
+  var path='/'+(page==='home'?'':page);
+  if(path===lastTracked) return;
+  var send=function(){
+    if(!(window.goatcounter && window.goatcounter.count)) return false;
+    try{ window.goatcounter.count({path:path, title:title}); lastTracked=path; }catch(e){}
+    return true;
+  };
+  if(!send()){ var tries=0, t=setInterval(function(){ if(send()||++tries>20) clearInterval(t) },500); }
+}
 window.addEventListener('hashchange',render);
 
 /* ---------- per-view wiring ---------- */

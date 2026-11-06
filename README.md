@@ -30,3 +30,9 @@ Open `index.html` in a browser, or run `python3 -m http.server` and visit http:/
 ## After an edit
 
 Bump the `?v=` number on the three file links in `index.html`, so visitors' browsers load the new files instead of cached copies.
+
+## Visitor stats
+
+GoatCounter counts every page view: https://shaonkantidhar.goatcounter.com
+Each page is counted separately (`/`, `/cv`, `/research`, `/quality-agent`, …).
+To see which email led to a visit, share links like `https://shawonnstu.github.io/?ref=edinburgh`; the tag shows under Referrers.
