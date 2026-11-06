@@ -54,8 +54,9 @@ header.site .wrap{display:flex; align-items:center; justify-content:space-betwee
 .logo{display:flex; align-items:baseline; gap:10px; text-decoration:none}
 .logo b{font:400 26px/1 var(--serif); letter-spacing:-.01em}
 .logo span{color:var(--muted)}
-.logo b,.kbd{white-space:nowrap}
-@media (max-width:1280px){.logo span{display:none}.nav a{padding:8px 10px}}
+.logo b,.logo span,.kbd{white-space:nowrap}
+@media (max-width:1440px){.logo span{display:none}}
+@media (max-width:1280px){.nav a{padding:8px 10px}}
 .nav{display:flex; gap:4px; list-style:none; padding:0; margin:0}
 .nav a{display:flex; gap:6px; align-items:baseline; padding:8px 12px; border-radius:999px; text-decoration:none; font-size:15px; color:var(--muted)}
 .nav a small{font:500 10.5px var(--mono); opacity:.7}
