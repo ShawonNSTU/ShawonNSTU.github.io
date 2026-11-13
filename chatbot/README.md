@@ -1,11 +1,15 @@
 # Portfolio chat assistant
 
-A chat panel ("Ask AI") on every page that answers questions about the portfolio.
+An "Ask AI" button in the header (and the footer, and the ⌘K menu) opens a chat panel on every page that answers questions about the portfolio. The panel drops down from the header, so it never covers page content.
 
 It has two layers:
 
 1. **Built-in answers** (already live). The browser searches the portfolio data and answers directly. No server, no AI model, no cost, and it can only say what is on the site.
 2. **An open language model** (optional, free). A small Cloudflare Worker gives an open model (Llama via Workers AI) only the relevant facts and asks it to answer from them. If it is unavailable or the free daily allowance is used up, the site silently falls back to layer 1, so visitors never see an error.
+
+Answers appear as a stream. With the model on, text arrives token by token from the Worker; with the built-in answers, the text is typed out at a natural pace. The Stop button ends an answer early, and clicking a quick question interrupts one that is still typing.
+
+The conversation lives only on the page, so it starts fresh on every page load. It is kept while you move between pages of the site, because the site never reloads.
 
 ```
 Visitor ──▶ chat panel (assets/js/chat.js)
@@ -34,7 +38,7 @@ Then open `assets/js/chat.js` and paste it into the first setting:
 var CHAT_ENDPOINT = 'https://portfolio-chat.<your-subdomain>.workers.dev';
 ```
 
-Bump the `?v=` number on the three script links in `index.html`, then commit and push.
+Bump the `?v=` number on the script links in `index.html`, then commit and push.
 The panel's sub-title changes to "AI-assisted" when a model answered.
 
 ## Keeping it up to date
@@ -54,6 +58,7 @@ The built-in layer reads `data/content.js` directly in the browser, so it is alw
 - **Answers are restricted to retrieved facts**, with a system prompt that forbids inventing anything and refuses private details.
 - **Input limits:** 300 characters per question, 6 history turns, 6 KB per request.
 - **Rate limit:** uncomment the `RATE` block in `wrangler.toml` to cap each visitor.
+- **Streaming is capped:** the Worker stops after 1,200 characters, strips control characters and skips malformed events. If the stream breaks midway, the page keeps what it received.
 - **Model output is shown as plain text.** HTML in a reply is never executed, and only links to your own site are kept.
 - **Nothing is logged by the Worker.** Cloudflare may keep standard request logs; the chat tells visitors not to share private information.
 
@@ -66,7 +71,7 @@ To use another model, change `MODEL` in `wrangler.toml` to any text-generation m
 ## Tests
 
 ```bash
-node chatbot/test.js     # 21 checks on the Worker with a fake model: origins, limits, injection, fallbacks
+node chatbot/test.js     # 50 checks: Worker (origins, limits, injection, streaming, fallbacks) and every suggested question
 ```
 
 ## Files

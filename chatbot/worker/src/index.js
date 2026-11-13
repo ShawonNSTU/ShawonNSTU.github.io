@@ -1,5 +1,6 @@
 /* Cloudflare Worker: the portfolio chat assistant's AI endpoint.
-   POST { question, history } -> { answer, sources }
+   POST { question, history, stream? } -> { answer, sources }   or, with stream:true, a server-sent-event stream:
+     data: {"sources":[...]}   then   data: {"t":"next piece of text"} ...   then   data: [DONE]
    - Retrieval: finds the few portfolio facts relevant to the question (same engine the website uses).
    - Generation: an open model (Workers AI) answers using ONLY those facts.
    - Safety: origin allow-list, input limits, per-visitor rate limit, no secrets, no logging of questions. */
@@ -7,7 +8,7 @@ import * as E from '../../../assets/js/chat-engine.js';
 import kb from './kb.json';
 
 const index = E.makeIndex(kb);
-const MAX_Q = 300, MAX_HIST = 6, MAX_BODY = 6000;
+const MAX_Q = 300, MAX_HIST = 6, MAX_BODY = 6000, MAX_OUT = 1200;
 
 function corsHeaders(origin, allowed) {
   const ok = allowed.includes(origin);
@@ -17,6 +18,45 @@ const json = (obj, status, cors) => new Response(JSON.stringify(obj), { status, 
 
 /* Strip things a visitor could use to smuggle instructions in. */
 const clean = (s, n) => String(s || '').replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
+
+/* Re-shape the model's token stream into a small, safe event stream for the browser. */
+function toClientStream(aiStream, sources) {
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const send = (c, o) => c.enqueue(enc.encode('data: ' + JSON.stringify(o) + '\n\n'));
+  return new ReadableStream({
+    async start(controller) {
+      send(controller, { sources });
+      const reader = aiStream.getReader();
+      let buf = '', sent = 0, stop = false;
+      try {
+        while (!stop) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const parts = buf.split('\n\n'); buf = parts.pop();
+          for (const blk of parts) {
+            for (const ln of blk.split('\n')) {
+              if (ln.indexOf('data:') !== 0) continue;
+              const v = ln.slice(5).trim();
+              if (v === '[DONE]') { stop = true; break; }
+              let t = '';
+              try { const j = JSON.parse(v); t = typeof j.response === 'string' ? j.response : ''; } catch (e) { /* ignore a malformed event */ }
+              t = t.replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '');
+              if (!t) continue;
+              const room = MAX_OUT - sent;
+              if (room <= 0) { stop = true; break; }
+              const piece = t.slice(0, room); sent += piece.length; send(controller, { t: piece });
+            }
+            if (stop) break;
+          }
+        }
+      } catch (e) { /* the model stream broke: end cleanly with what was sent */ }
+      try { await reader.cancel(); } catch (e) { /* already closed */ }
+      controller.enqueue(enc.encode('data: [DONE]\n\n'));
+      controller.close();
+    }
+  });
+}
 
 export default {
   async fetch(req, env) {
@@ -56,7 +96,11 @@ export default {
     ];
 
     try {
-      const out = await env.AI.run(env.MODEL || '@cf/meta/llama-3.1-8b-instruct', { messages, max_tokens: 260, temperature: 0.2 });
+      const wantStream = body && body.stream === true;
+      const out = await env.AI.run(env.MODEL || '@cf/meta/llama-3.1-8b-instruct', { messages, max_tokens: 260, temperature: 0.2, ...(wantStream ? { stream: true } : {}) });
+      if (wantStream && out && typeof out.getReader === 'function') {
+        return new Response(toClientStream(out, ctx.sources), { status: 200, headers: { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no', ...(cors || {}) } });
+      }
       let answer = clean(out && (out.response || (out.result && out.result.response)), 1200);
       /* keep line breaks the model used for bullets */
       if (out && typeof out.response === 'string') answer = out.response.replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1200);

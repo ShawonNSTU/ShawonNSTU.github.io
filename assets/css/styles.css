@@ -479,11 +479,9 @@ body[data-page="contact"] .f-cta{display:none}
 body[data-page="record"] footer.site,body[data-page="education"] footer.site{margin-top:56px}
 
 /* ---------- chat assistant ---------- */
-.chat-fab{position:fixed; right:20px; bottom:20px; z-index:95; display:flex; align-items:center; gap:8px; padding:12px 18px 12px 14px; border-radius:999px; border:0; background:var(--ink); color:var(--bg); font:600 14.5px var(--sans); cursor:pointer; box-shadow:0 10px 30px rgba(10,20,40,.22); transition:transform .18s, box-shadow .18s}
-.chat-fab:hover{transform:translateY(-2px); box-shadow:0 14px 34px rgba(10,20,40,.28)}
-.chat-fab:focus-visible,.chat-x:focus-visible,.chat-send:focus-visible,.chat-sug:focus-visible,.chat-link:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-.chat-fab[hidden],.chat-panel[hidden]{display:none}
-.chat-panel{position:fixed; right:20px; bottom:20px; z-index:96; width:min(410px,calc(100vw - 24px)); height:min(660px,calc(100vh - 40px)); display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:22px; box-shadow:0 24px 70px rgba(10,20,40,.3); overflow:hidden}
+.chat-open:focus-visible,.chat-x:focus-visible,.chat-send:focus-visible,.chat-sug:focus-visible,.chat-link:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.chat-panel[hidden]{display:none}
+.chat-panel{position:fixed; right:max(16px,calc((100vw - 1192px)/2)); top:78px; z-index:96; width:min(410px,calc(100vw - 24px)); height:min(640px,calc(100vh - 96px)); display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:22px; box-shadow:0 24px 70px rgba(10,20,40,.3); overflow:hidden}
 .chat-panel > header{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 14px 12px 18px; border-bottom:1px solid var(--line)}
 .chat-title{display:grid; gap:2px; min-width:0}
 .chat-title b{font:500 21px/1.1 var(--serif)}
@@ -527,11 +525,9 @@ body[data-page="record"] footer.site,body[data-page="education"] footer.site{mar
 @keyframes chatin{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
 @keyframes chatdot{0%,80%,100%{opacity:.25; transform:scale(.85)}40%{opacity:1; transform:scale(1)}}
 @media (max-width:700px){
-  .chat-fab{right:14px; bottom:14px}
-  .chat-panel{right:8px; bottom:8px; left:8px; width:auto; height:min(82vh,calc(100vh - 16px)); border-radius:20px}
+  .chat-panel{right:8px; left:8px; top:66px; bottom:8px; width:auto; height:auto; border-radius:20px}
 }
-@media print{.chat-fab,.chat-panel{display:none!important}}
-footer.site{padding-bottom:92px}
+@media print{.chat-open,.chat-panel{display:none!important}}
 
 /* narrow phones: let list rows (research, certificates, contests) stack instead of overflowing */
 @media (max-width:420px){
@@ -539,4 +535,33 @@ footer.site{padding-bottom:92px}
   .list a > :last-child,.list div.row > :last-child{grid-column:2}
   .list > a > div,.list > .row > div{min-width:0}
   .list b{font-size:21px}
+}
+
+/* ---------- chat: header button, streaming caret, stop button ---------- */
+.chat-open{display:inline-flex; align-items:center; gap:7px; height:40px; padding:0 15px 0 12px; border-radius:999px; border:1px solid color-mix(in srgb, var(--accent) 42%, var(--line)); background:var(--accent-soft); color:var(--accent); font:600 14px var(--sans); cursor:pointer; white-space:nowrap; transition:background .15s, border-color .15s}
+.chat-open:hover,.chat-open.on{background:color-mix(in srgb, var(--accent) 22%, var(--accent-soft)); border-color:var(--accent)}
+.chat-open svg{flex:none}
+@media (max-width:820px){.chat-open{width:40px; padding:0; justify-content:center}.chat-open span{display:none}}
+.chat-caret{display:inline-block; width:2px; height:1.05em; margin-left:2px; vertical-align:-.16em; background:var(--accent)}
+.chat-in{animation:chatin .28s ease both}
+.chat-send.is-stop{background:var(--card-2); color:var(--ink); border:1px solid var(--line)}
+.chat-sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap}
+.chat-panel > header{position:relative}
+.chat-text p + p{margin-top:8px}
+@media (prefers-reduced-motion:no-preference){.chat-caret{animation:chatblink 1s steps(2,start) infinite}}
+@media (prefers-reduced-motion:reduce){.chat-in{animation:none}}
+@keyframes chatblink{to{visibility:hidden}}
+
+/* three header buttons on small phones: keep the logo and buttons on one row */
+@media (max-width:420px){
+  header.site .wrap{gap:10px}
+  .logo b{font-size:25px}
+  .tools{gap:6px}
+}
+
+@media (max-width:340px){
+  header.site .wrap{gap:6px}
+  .logo b{font-size:17px}
+  .tools{gap:4px}
+  .tools .icon-btn,.tools .chat-open{width:36px; height:36px}
 }
