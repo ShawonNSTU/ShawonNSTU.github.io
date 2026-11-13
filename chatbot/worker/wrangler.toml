@@ -1,0 +1,22 @@
+# Cloudflare Worker for the portfolio chat assistant.
+# Deploy:  cd chatbot/worker && npx wrangler login && npx wrangler deploy
+name = "portfolio-chat"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Workers AI binding: lets the Worker call open models with no API key.
+[ai]
+binding = "AI"
+
+# Visitors' browsers may call this Worker only from these sites.
+[vars]
+ALLOWED_ORIGINS = "https://shawonnstu.github.io,http://localhost:8765,http://localhost:8000"
+# An open model hosted by Cloudflare. If this one is retired, pick another from the Workers AI catalogue.
+MODEL = "@cf/meta/llama-3.1-8b-instruct"
+
+# Optional rate limiting per visitor (30 questions per minute). Uncomment after `wrangler` supports it on your plan.
+# [[unsafe.bindings]]
+# name = "RATE"
+# type = "ratelimit"
+# namespace_id = "1001"
+# simple = { limit = 30, period = 60 }

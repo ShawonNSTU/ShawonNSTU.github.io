@@ -83,6 +83,14 @@ function vAbout(){
   '</div>';
 }
 
+function researchRows(){
+  return RESEARCH.map(function(r,i){
+    var n=String(i+1).padStart(2,'0');
+    var body='<span class="n">'+n+'</span><div><b>'+esc(r.title)+'</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">'+esc(r.desc)+'</div>'+(r.tags&&r.tags.length?chips(r.tags,0):'')+'</div><span class="mono muted">'+esc(r.date)+(r.href?' \u2197':'')+'</span>';
+    return r.href?'<a href="'+r.href+'">'+body+'</a>':'<div class="row">'+body+'</div>';
+  }).join('');
+}
+
 function vResearch(){
   var areas=RESEARCH_AREAS.map(function(a,i){return '<div class="cap"><span class="mono muted">'+String(i+1).padStart(2,'0')+'</span><h3>'+esc(a[0])+'</h3><p class="muted">'+esc(a[1])+'</p></div>'}).join('');
   var cards=function(a){return '<div class="decisions">'+a.map(function(d){return '<div class="dec"><b>'+esc(d[0])+'</b><span>'+esc(d[1])+'</span></div>'}).join('')+'</div>'};
@@ -91,15 +99,7 @@ function vResearch(){
   '<section class="sec" style="padding-top:48px"><div class="sec-h"><div><span class="eyebrow">Research interests</span><h2>What I <em>look into</em></h2></div></div><div class="caps" style="grid-template-columns:repeat(4,1fr)">'+areas+'</div></section>'+
 
   '<section class="sec"><div class="sec-h"><div><span class="eyebrow">Research experience</span><h2>Research &amp; <em>patents</em></h2></div>'+'</div><div class="list">'+
-    '<div class="row"><span class="n">01</span><div><b>Method to reduce light flicker while recording video</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">Syncs camera settings to cut light flicker when recording with several cameras at once.</div>'+chips(['Computational imaging','Video processing','Camera synchronization'],0)+'</div><span class="mono muted">Aug 2025</span></div>'+
-    '<div class="row"><span class="n">02</span><div><b>Missed-speech recovery for voice calls</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">Detects when parts of a call are lost to disconnection, poor audio or noise, and recovers the missed speech so the conversation continues without gaps.</div>'+chips(['Speech processing','Multimodal sensing','Audio signal processing'],0)+'</div><span class="mono muted">Mar 2025</span></div>'+
-    '<div class="row"><span class="n">03</span><div><b>A method to increase security when using Bluetooth multipoint</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">When earbuds are shared or connected to several devices, calls and private notifications can reach the wrong listener. I proposed rating each earbud\'s trust from the wearer\'s voice and each sound\'s sensitivity, so private audio only plays in a trusted earbud.</div>'+chips(['Bluetooth multipoint','Voice biometrics','Audio classification','NLP'],0)+'</div><span class="mono muted">Dec 2024</span></div>'+
-    '<div class="row"><span class="n">04</span><div><b>Shoulder-surfing defence for VR typing</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">Stops attackers from recovering VR passwords by filming hand movements. The virtual keyboard moves, tilts or resizes every few keystrokes within the user\'s comfortable reach, and a security mode adapts to the surroundings.</div>'+chips(['AR/VR','Authentication','HMD security'],0)+'</div><span class="mono muted">May – Aug 2024</span></div>'+
-    '<div class="row"><span class="n">05</span><div><b>Context-aware authentication against fraud</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">An authentication framework that senses behaviour and context, uses an LLM to spot deceptive or coerced situations, and raises security step by step to block fraudulent authorization.</div>'+chips(['Authentication','Behavioral biometrics','LLM threat detection'],0)+'</div><span class="mono muted">Feb – Apr 2024</span></div>'+
-    '<div class="row"><span class="n">06</span><div><b>Conversational Q&amp;A on audio media</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">A framework that answers questions about audio buried in documents and web pages. It extracts the audio, transcribes it with Whisper and answers with GPT-3.5, so meetings, lectures and podcasts become searchable by asking.</div>'+chips(['Automatic speech recognition','Large language models','Conversational QA','Audio understanding'],0)+'</div><span class="mono muted">Jan 2024</span></div>'+
-    '<div class="row"><span class="n">07</span><div><b>Overexertion warning for wearables</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">A smartwatch feature that warns users before they over-exercise. It estimates blood lactate with optical sensing instead of bulky sweat pads, and checks heart rate, temperature, motion, sleep and food intake to avoid false alarms.</div>'+chips(['Optical sensing','Lactate','Context awareness','Wearables'],0)+'</div><span class="mono muted">Dec 2023</span></div>'+
-    '<a href="https://patents.google.com/patent/US20230229260A1/en"><span class="n">08</span><div><b>Wearable device and control method therefor</b><div class="muted" style="font-size:14.5px; margin-top:4px; max-width:70ch">Uses sensor data to separate intentional touches from accidental ones on wireless earbuds.</div>'+chips(['Wearable sensing','Intent recognition','Touch interaction','Earbuds'],0)+'</div><span class="mono muted">Feb – Mar 2022 ↗</span></a>'+
-  '</div></section>'+
+    researchRows()+'</div></section>'+
   '</div>';
 }
 

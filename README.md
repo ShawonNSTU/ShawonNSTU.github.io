@@ -36,3 +36,7 @@ Bump the `?v=` number on the three file links in `index.html`, so visitors' brow
 GoatCounter counts every page view: https://shaonkantidhar.goatcounter.com
 Each page is counted separately (`/`, `/cv`, `/research`, `/quality-agent`, …).
 To see which email led to a visit, share links like `https://shawonnstu.github.io/?ref=edinburgh`; the tag shows under Referrers.
+
+## Chat assistant
+
+The "Ask AI" panel answers questions about the portfolio. It works on its own with built-in answers, and can use a free open model through a small Cloudflare Worker. See `chatbot/README.md`.

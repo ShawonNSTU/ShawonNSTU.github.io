@@ -1,0 +1,81 @@
+# Portfolio chat assistant
+
+A chat panel ("Ask AI") on every page that answers questions about the portfolio.
+
+It has two layers:
+
+1. **Built-in answers** (already live). The browser searches the portfolio data and answers directly. No server, no AI model, no cost, and it can only say what is on the site.
+2. **An open language model** (optional, free). A small Cloudflare Worker gives an open model (Llama via Workers AI) only the relevant facts and asks it to answer from them. If it is unavailable or the free daily allowance is used up, the site silently falls back to layer 1, so visitors never see an error.
+
+```
+Visitor ──▶ chat panel (assets/js/chat.js)
+              ├─ built-in answer  (assets/js/chat-engine.js)      always works
+              └─ POST question ──▶ Worker (chatbot/worker)         optional
+                                      ├─ retrieve facts  (same engine)
+                                      └─ Workers AI model ──▶ answer + links
+```
+
+## Turn on the AI model (about 5 minutes, free, no card)
+
+You need a free Cloudflare account and Node.js 18+.
+
+```bash
+cd chatbot/worker
+npm install
+npx wrangler login          # opens a browser to sign in to Cloudflare
+npm run deploy              # rebuilds the knowledge base, then deploys
+```
+
+The command prints an address like `https://portfolio-chat.<your-subdomain>.workers.dev`.
+
+Then open `assets/js/chat.js` and paste it into the first setting:
+
+```js
+var CHAT_ENDPOINT = 'https://portfolio-chat.<your-subdomain>.workers.dev';
+```
+
+Bump the `?v=` number on the three script links in `index.html`, then commit and push.
+The panel's sub-title changes to "AI-assisted" when a model answered.
+
+## Keeping it up to date
+
+All facts come from `data/content.js`. After you change it, rebuild the Worker's copy:
+
+```bash
+node chatbot/build-kb.js        # or: npm run deploy  (does this for you)
+```
+
+The built-in layer reads `data/content.js` directly in the browser, so it is always current.
+
+## Safety
+
+- **No secrets.** The model is reached through a Cloudflare binding, so there is no API key to leak.
+- **Only your site can call the Worker.** Edit `ALLOWED_ORIGINS` in `wrangler.toml` if the address changes.
+- **Answers are restricted to retrieved facts**, with a system prompt that forbids inventing anything and refuses private details.
+- **Input limits:** 300 characters per question, 6 history turns, 6 KB per request.
+- **Rate limit:** uncomment the `RATE` block in `wrangler.toml` to cap each visitor.
+- **Model output is shown as plain text.** HTML in a reply is never executed, and only links to your own site are kept.
+- **Nothing is logged by the Worker.** Cloudflare may keep standard request logs; the chat tells visitors not to share private information.
+
+## Costs and limits
+
+Workers AI has a daily free allowance. Check the current figure in the Cloudflare dashboard, since it can change. When it runs out the Worker returns an error and the site uses the built-in answers until the next day.
+
+To use another model, change `MODEL` in `wrangler.toml` to any text-generation model in the Workers AI catalogue.
+
+## Tests
+
+```bash
+node chatbot/test.js     # 21 checks on the Worker with a fake model: origins, limits, injection, fallbacks
+```
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `assets/js/chat-engine.js` | Knowledge base, search and built-in answers (browser and Worker) |
+| `assets/js/chat.js` | The chat panel |
+| `chatbot/worker/src/index.js` | The Worker |
+| `chatbot/worker/src/kb.json` | Generated knowledge base (`node chatbot/build-kb.js`) |
+| `chatbot/worker/wrangler.toml` | Worker settings |
+| `chatbot/test.js` | Worker tests |
