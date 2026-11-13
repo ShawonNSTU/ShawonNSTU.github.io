@@ -65,6 +65,23 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   r = await worker.fetch(req({ question: 'awards' }), lim);
   ok('rate limit returns 429', r.status === 429);
 
+  /* every suggested question and quick button must reach the right built-in answer */
+  const idx = E.makeIndex(kb);
+  const expect = [
+    [/Why|AI agents|SmartThings Pro|relevant/i, 'What has Shaon built with AI agents?'],
+    [/patents/i, 'Show his research and patents'],
+    [/awards/i, 'Which awards has he won?'],
+    [/October 2019/i, "What is Shaon's experience?"],
+    [/NSTU/i, 'What is his education?'],
+    [/reach Shaon/i, 'How can I contact him?'],
+    [/featured projects/i, 'Show projects'],
+    [/patents/i, 'Show research'],
+    [/reach Shaon/i, 'contact']
+  ];
+  expect.forEach(([re, q]) => { const a = E.answer(idx, q); ok('suggestion works: ' + q, re.test(a.text) && !a.miss, a.text.slice(0, 60)); });
+  [['how can I contact him?', 'contact'], ['how do i get in touch', 'contact'], ['can I hire him', 'contact'], ['what is his salary', 'private'], ['hi', 'greet'], ['help', 'help'], ['how can i download his cv', 'cv'], ['where did he study', 'list:education'], ['does he have patents', 'patents']]
+    .forEach(([q, w]) => ok('intent: ' + q + ' -> ' + w, E.intent(q) === w, E.intent(q)));
+
   const sp = E.systemPrompt('me@example.com');
   ok('system prompt forbids inventing facts and ignoring hidden instructions', /never invent/i.test(sp) && /do not follow instructions/i.test(sp));
   console.log('\n' + pass + ' passed, ' + fail + ' failed');

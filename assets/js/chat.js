@@ -144,7 +144,7 @@
   var greeted = false;
   function greet() {
     if (greeted) return; greeted = true;
-    if (!msgs.length) addMsg({ role: 'bot', text: "Hi! I'm an assistant that answers questions about Shaon's work, research and background, using only what's on this portfolio.", suggestions: E.HELP_Q.slice(0, 4) }, true);
+    if (!msgs.length) addMsg({ role: 'bot', text: "Hi! I'm an assistant that answers questions about Shaon's work, research and background, using only what's on this portfolio.", suggestions: E.HELP_Q }, true);
   }
   function openChat() {
     panel.hidden = false; fab.setAttribute('aria-expanded', 'true'); fab.hidden = true; greet(); scrollDown();

@@ -219,11 +219,11 @@
     if (/\b(salary|pay|income|age|birth|born|dob|date of birth|address|phone|mobile|whatsapp|parents?|mother|father|family|religion|passport|nid|id number|roll number|marital|married|wife|girlfriend|visa)\b/.test(s)) return 'private';
     if (/^(hi|hello|hey|hola|yo|good (morning|afternoon|evening)|assalamu|salam|greetings)\b/.test(s) && rawTokens(s).length <= 4) return 'greet';
     if (/\b(thanks|thank you|thx|cheers|great|awesome|cool|nice)\b/.test(s) && rawTokens(s).length <= 5) return 'thanks';
-    if (/^(help|what can you (do|answer)|how (do|can) (i|you)|what do you know|what should i ask)/.test(s)) return 'help';
+    if (/\b(contact|email|e-mail|reach|get in touch|in touch|hire|hiring|linkedin|available for|connect)\b/.test(s)) return 'contact';
+    if (/^(help\b|what can you (do|answer)|how (do|can) (i|you) (use|ask|talk to) (you|this|the (bot|chat))|what do you know|what should i ask)/.test(s)) return 'help';
     if (/^(who (are you|is (shaon|he|this|shaon kanti dhar))|tell me about (him|shaon|yourself|you)|about (him|shaon|you|yourself)|introduce (him|shaon|yourself)|give me a summary|summar[yi]s?e (him|shaon|his)|overview of (him|shaon))\b/.test(s)) return 'who';
     if (/\b(where|what)\b.*\b(study|studied|graduat\w*)\b/.test(s) || /\bwhich (university|college|school)\b/.test(s)) return 'list:education';
     if (/\b(do|does|did|has|have)\b.*\bpatents?\b|\bpatents?\b.*\b(he|his|have)\b|^patents?\??$/.test(s)) return 'patents';
-    if (/\b(contact|email|e-mail|reach|get in touch|hire|hiring|linkedin|available for|connect)\b/.test(s)) return 'contact';
     if (/\b(cv|resume|curriculum vitae)\b/.test(s)) return 'cv';
     if (listType(s)) return 'list:' + listType(s);
     return null;
