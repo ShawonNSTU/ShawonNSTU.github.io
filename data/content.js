@@ -14,80 +14,100 @@ var PROJECTS=[
  {id:'smartthings-pro', n:'01', name:'SmartThings Pro', cat:'B2B IoT platform', status:'Live', live:true, role:'Project Leader', period:'Jun 2025 – now', org:'Samsung R&D Institute Bangladesh',
   tagline:'Building management for hotels, offices, stores and schools, now with an AI agent.',
   card:'assets/img/mapview.webp', cover:'assets/img/mapview.webp',
+  hi:[['12', 'Engineers led'], ['Starbucks', 'AI agent deployed'], ['Kumho Resort', 'Installed, South Korea']],
   facts:[['12','engineers on the team I lead'],['Starbucks','runs the B2B AI agent'],['Kumho Resort','installed in South Korea']],
   overview:'SmartThings Pro is Samsung\'s IoT and building-management platform for businesses. It takes the SmartThings idea of connecting and automating devices into hotels, offices, shops, schools and apartment complexes, with central dashboards, multi-site management and energy features. I joined as Lead Engineer and now lead the project.',
   did:['Lead 12 engineers across frontend, backend, database and cloud services, and own the calls on architecture, API design, reliability and web performance.','Architected the SmartThings Pro B2B AI Agent and rolled it out to Starbucks.','Built the 3D Map View, multi-site management and the property dashboard for device statistics, usage and control.','Set up an AI-assisted development environment for the team, with internal workflows built on LLMs, RAG and tool integration.'],
-  decisions:[['Request parallelization','Independent API calls go out together instead of one after another.'],['Client-side caching','Data the screen already has is reused instead of fetched again.'],['Query orchestration','Related queries are coordinated so pages load in a sensible order.'],['List virtualization','Long device lists render only the rows on screen.'],['Real-time updates','Device state changes stream in and update the view as they happen.']],
   stack:['Vue.js','Three.js','Unity','Chart.js','Spring Boot','LLM agents','RAG','MCP'],
   gallery:[['assets/img/mapview.webp','Map View: 3D floor plan with live device markers','w6'],['assets/img/multisite.webp','Multi-site management on a city map','w3'],['assets/img/dashboard.webp','Property dashboard: device statistics, usage and control','w3'],['assets/img/stpro.webp','SmartThingsPro.AI sign-in','w6']],
   links:[['smartthingspro.ai','https://www.smartthingspro.ai/'],['Samsung product page','https://www.samsung.com/us/business/industries/smartthings-pro/']]},
- {id:'quality-agent', n:'02', name:'Code Quality Agent', short:'Quality Agent', cat:'AI agent · Developer workflow', status:'3 flows', role:'One agent, three triggers', period:'Monthly · hourly · always on', org:'GitHub, email, Quality Dashboard, TEM documents', l3:'Connects to', l1:'Design', l2:'Runs', l4:'Flows',
-  tagline:'One agent that raises our code-quality scores every month and follows its own pull requests through review.',
-  card:'assets/img/agent-product.webp', cover:'assets/img/agent-product.webp',
-  facts:[['3','triggers: a monthly schedule, GitHub events, and an always-on check'],['3','pull requests a month, one each for SAM, TEM and CQM'],['5.00','minimum CQM score, with no critical or major issues, before a PR can open']],
-  overview:'Keeping code-quality scores up usually means someone has to remember to run the tools, fix the code, open pull requests and chase reviewers. This agent does that work. Once a month it opens fix-up pull requests for three quality measures, SAM, TEM and CQM. It then follows each pull request through review until it is merged and the results are published. A third flow checks that every team member does enough code reviews.',
-  did:['Designed one agent with three triggers. All three share one state store and one connector layer.','Monthly build: after day 20, an orchestrator checks for open pull requests. For each measure it creates a branch, runs the tool, fixes code to raise the score and opens a pull request for a human reviewer.','Review lifecycle: GitHub webhooks plus an hourly re-poll. It emails a reviewer once a day until they act, fixes each review thread with one commit and re-runs the pull request\'s own gate so the score cannot drop.','Escalation: after three rounds on one thread, or a change it must not make, the agent stops auto-fixing. It comments asking for direction and emails the reviewer and the lead.','After merge it publishes scores, reports and build files to the Quality Dashboard and updates the TEM documents with attachments.','Compliance: it reads each member\'s code-review count. Anyone with 4 or fewer reviews gets one email a day until they pass, and every change in the count goes straight to the dashboard.'],
-  decisionsTitle:'Shared runtime',
-  decisionsIntro:'Every flow reads and writes the same state. That is what keeps three promises true: one email per day, no duplicate pull requests and no double publish.',
-  decisions:[['Run state','The month, which pull requests exist and where the last run stopped.'],['Daily-send log','Recipient, pull request and date, so each person gets one email a day whatever the poll rate.'],['Round counters','Fix rounds per pull request and per thread, plus the last comment already handled.'],['Repo workspace and code fixer','Clone, edit, run SAM, tests or CQM, then commit. Shared by the build and review flows.'],['Audit log','Every commit, email, publish and escalation, with a timestamp.']],
+ {id:'quality-agent', n:'02', name:'PQM Agent', short:'PQM Agent', cat:'AI agent · Engineering quality', status:'In use', role:'Designer & Developer', period:'Runs on every push', org:'Whole organization', l3:'Used by', l1:'Role', l2:'Runs', l4:'Status',
+  metaLine:'AI agent · Engineering quality',
+  tagline:'An agent that checks every commit for code quality, test results, architecture health and regressions, so developers can stay on features and releases.',
+  card:'assets/img/pqm-product.svg', cover:'assets/img/pqm-product.svg',
+  hi:[['4','Automatic checks'],['Every push','Starts a run'],['Whole org','Uses the agent']],
+  facts:[['4','automatic checks on every commit: static analysis, unit tests, SAM and regression'],['Every push','starts a run, with nothing for the developer to remember or trigger'],['Whole org','every team is checked by the same agent and the same standard']],
+  overview:'Keeping code quality up is a second job on top of the real one. Developers build features and ship releases, and quality checks get run late, by hand, or not at all. The PQM Agent (Process Quality Management) takes that work over. Whenever someone pushes a commit, it runs static analysis, runs the unit tests, measures the software architecture maturity (SAM) and checks that the new change has not caused a regression. It is used across the whole organization.',
+  did:['Designed and built the PQM Agent, which starts by itself whenever a commit is pushed and needs no manual step from the developer.','Static analysis: scans the changed code for defects and rule violations before the change reaches review.','Unit tests: runs the project\'s unit tests against the new commit and reports what passed and what failed.','Software architecture maturity (SAM): measures the SAM score, so the health of the architecture is tracked on every change and not guessed at release time.','Regression check: compares the new commit with the earlier state, to catch a change that breaks something that used to work.','Rolled it out to the whole organization, so every team is held to the same checks and results can be compared across teams.'],
+  flowsTitle:'One push, four checks',
   flows:[
-   {n:'01', name:'Monthly build', trigger:'Schedule · monthly, after day 20', steps:[['Orchestrator','Works out the current month and loads the run state.'],['Check for open PRs','If PRs for SAM, TEM or CQM are already open, nothing new is branched and Flow 02 finishes them.'],['Create branches','One per measure: sam-, tem- and cqm- plus the month.'],['Run the tools','SAM reads the score, unit tests give the TEM score, CQM runs on GitHub and lists issues.'],['Fix the code','Changes code and tests to raise each score. CQM must reach 5.00 with no critical or major issues.'],['Open pull requests','Pushes and opens three PRs, all waiting on a human reviewer.']]},
-   {n:'02', name:'Review lifecycle', trigger:'GitHub webhook, plus hourly re-poll', steps:[['Read review state','Reads review status and checks for each PR.'],['No review yet','Emails the reviewer once a day until they act.'],['Changes requested','Reads every thread and sorts it: fix, reply or out of scope. Fixes on the same branch, one commit per thread.'],['Re-run the gate','Runs the PR\'s own check again. The score must not drop. If it fails, it fixes again.'],['Escalate','At round 3, or for a change it must not make, it stops, asks for direction and emails the reviewer and lead.'],['Approved, not merged','Sends the approver a daily nudge to merge.'],['Merged','Publishes results and build files to the Quality Dashboard and updates TEM documents.']]},
-   {n:'03', name:'Compliance', trigger:'Always on · review activity checked continuously', steps:[['Read review counts','Reads each member\'s code-review count.'],['More than 4 reviews?','Yes: compliant, no email. No: one email a day until the count passes 4.'],['Count changed','Pushes the new count to the dashboard straight away, in parallel.']]}
+   {n:'01', name:'Commit check', trigger:'Developer pushes a commit', steps:[['Commit pushed','The push starts the agent. No one has to run anything.'],['Collect the change','The agent picks up the commit and the files it touches.'],['Run the four checks','Static analysis, unit tests, SAM and the regression check each run on the change.'],['Build one report','The results of all four checks are put together into a single result.'],['Report to the developer','The developer sees the outcome straight after the push and can fix problems while the change is fresh.']]},
+   {n:'02', name:'Regression check', trigger:'Every commit, compared with the earlier state', steps:[['Take the earlier state','What worked before the commit is the reference point.'],['Compare with the commit','The agent checks whether the new change altered behavior that used to work.'],['Flag regressions','Anything that broke is reported with the commit that caused it, before it can reach a release.']]}
   ],
-  stack:['AI agent','GitHub webhooks','Scheduled jobs','Email','SAM','TEM','CQM','Quality Dashboard'],
-  gallery:[['assets/img/agent-product.webp','Product view: one month of the agent\'s work. Statuses are examples.','w6'],['assets/img/agent-flows.webp','Architecture diagram: one agent, three triggers, one shared runtime','w6']],
+  stack:['AI agent','Static analysis','Unit tests','SAM','Regression checks','Process quality management'],
+  gallery:[['assets/img/pqm-product.svg','Product view: a commit pushed by shaon-kanti is checked live, with the agent log and results side by side. The commit and statuses are examples.','w6'],['assets/img/pqm-card.svg','Overview: every push starts four automatic checks and returns one report.','w6']],
   links:[]},
- {id:'lounge', n:'03', name:'Lounge', cat:'Showroom web app', status:'IFA 2024 · CES 2025', role:'Core team, then Lead Engineer', period:'Apr 2024 – Dec 2025', org:'Samsung R&D Institute Bangladesh',
+ {id:'enterprise-ai-assistant', n:'03', name:'Enterprise AI Assistant', short:'Enterprise AI Assistant', cat:'Enterprise AI assistant', status:'Initial release', role:'Architect & Lead Developer', period:'Jul 2025 – Mar 2026', org:'Enterprise AI platform',
+  metaLine:'Agentic RAG · Enterprise AI',
+  tagline:'An agentic RAG assistant that answers questions from an organization\'s documents and data, and cites the exact page.',
+  card:'assets/img/enterprise-assistant-product.svg', cover:'assets/img/enterprise-assistant-product.svg',
+  points:['Used by 500+ engineers across the organization','Answers grounded in documents, with page-level citations','Hybrid retrieval: vector and full-text search, merged and reranked','Role-aware access: each user sees only the data they may see'],
+  overview:'Organizations keep their knowledge in long documents, and an answer is often split across several tables or files, so people spend time searching and asking the same questions again. The Enterprise AI Assistant is a chat assistant that answers from an organization\'s own documents and structured data, and shows where every answer came from. An AI agent plans focused searches, reads what it finds, searches again if it needs more, and only then writes a cited answer. I architected the platform end to end and led its development. It is now used by more than 500 engineers across the organization.',
+  did:['Architected the platform end to end: a Next.js web app, a FastAPI service, PostgreSQL with pgvector, document storage, and open-weight models served with vLLM.','Built the agentic RAG pipeline. An agent plans focused searches, reads documents and structured data, repeats until it has the evidence, and streams an answer with numbered citations that open the exact page.','Designed hybrid retrieval: vector and full-text search merged with Reciprocal Rank Fusion, then rescored by a cross-encoder reranker. Table-aware chunking keeps tables intact, so questions that need two tables to answer, such as a rule in one and its exceptions in another, get answered.','Secured access by design: short-lived signed tokens between services, role-based permissions, and row-level rules so each user sees only the data they are allowed to see. Database queries are read-only, row-capped and time-limited.','Built document operations: PDF upload with duplicate detection, page preview, and an index status view that shows when documents change and need re-indexing.','Set the engineering standard: strict type checking and linting, a single migration history for the whole database, and more than 60 automated tests.','Rolled it out across the organization, where it is used by 500+ engineers.'],
+  stack:['AI agents','RAG','Hybrid search','Reranking','vLLM','FastAPI','Next.js','PostgreSQL + pgvector'],
+  gallery:[['assets/img/enterprise-assistant-product.svg','Product view: the assistant answers a refund-policy question from two documents and cites the pages. The conversation and files are examples.','w6'],['assets/img/enterprise-assistant-pipeline.svg','How the assistant answers: an agent plans searches, uses a document-search tool and a role-aware database tool, then streams a cited answer.','w6']],
+  links:[]},
+ {id:'lounge', n:'04', name:'Lounge', cat:'Retail Showroom Secured IoT Device Control', status:'IFA 2024 · CES 2025', role:'', period:'Apr 2024 – Dec 2025', org:'Samsung R&D Institute Bangladesh',
   tagline:'Walk up, scan a code, control real devices from your own phone. No app, no account.',
   card:'assets/img/ifa-lounge.webp', cover:'assets/img/ifa-lounge.webp',
+  hi:[['0', 'Installs or accounts'], ['2', 'Trade shows: IFA, CES'], ['1', 'R&D Excellence Award']],
   facts:[['0','apps to install or accounts needed'],['2','world trade shows: IFA Berlin and CES Las Vegas'],['1','Samsung R&D Excellence Award']],
   overview:'Lounge is a web app for Samsung showrooms and trade shows. Visitors use their own phones to control SmartThings-connected devices and see how they work together. I was on the core development team from the start and later led the work.',
-  did:['Owned the application architecture, API integration and real-time device interaction across frontend and backend services.','Made the experience work without a Samsung account, so any visitor could try the devices on the spot.','Shipped it for IFA 2024 in Berlin and CES 2025 in Las Vegas.','The work earned a Samsung R&D Excellence Award.'],
   decisions:[['No sign-in','Removing the Samsung account step meant anyone passing the booth could try it immediately.'],['Server-Sent Events','Device state is pushed to the phone, so the screen matches the real device.'],['Kotlin + Micronaut','A light JVM backend for device control and sessions.'],['Amazon Aurora','Managed relational storage behind the service.']],
   stack:['Next.js','Kotlin','Micronaut','Amazon Aurora','SSE','OAuth'],
-  gallery:[['assets/img/ifa-lounge.webp','IFA 2024 Berlin: Lounge Web on the Samsung booth','w4'],['assets/img/lounge-phone.webp','Lounge on a visitor\'s phone','w2 tall'],['assets/img/ifa-control.webp','“Control the devices directly from visitors\' mobile without downloading an app”','w4']],
+  gallery:[['assets/img/ifa-lounge.webp','IFA 2024 Berlin: Lounge Web on the Samsung booth','w4'],['assets/img/lounge-phone.webp','Lounge on a visitor\'s phone','w2 tall'],['assets/img/ifa-control.webp','“Control the devices directly from visitors\' mobile without downloading an app”','w4'],['assets/img/ces.webp','CES 2025 Las Vegas: SmartThings on show','w6']],
   links:[['Live site','https://loungeweb.samsungiotcloud.com'],['IFA 2024 post','https://www.linkedin.com/feed/update/urn:li:activity:7238078863975534592/'],['CES 2025 post','https://www.linkedin.com/feed/update/urn:li:activity:7303798804804182016/']]},
- {id:'virtual-studio', n:'04', name:'Virtual Studio', cat:'Retail demo', status:'IFA 2024', role:'Lead Engineer', period:'Apr 2024 – Mar 2025', org:'Samsung R&D Institute Bangladesh',
-  tagline:'The SmartThings showroom for places with no devices and weak networks.',
+ {id:'virtual-studio', n:'05', name:'Virtual Studio', cat:'Virtual IoT Showroom', status:'IFA 2024', role:'', period:'Apr 2024 – Mar 2025', org:'Samsung R&D Institute Bangladesh',
+  tagline:'The SmartThings retail showroom for places with no devices and weak networks.',
   card:'assets/img/ifa-virtual.webp', cover:'assets/img/ifa-virtual.webp',
+  hi:[['IFA 2024', 'Shown on Samsung booth'], ['Virtual', 'Devices, no hardware'], ['Energy', 'Service + Map View']],
   facts:[['Virtual','devices instead of real hardware'],['Energy','Service and Map View built in'],['IFA','2024 Berlin, shown on the Samsung booth']],
   overview:'Virtual Studio is built for online retail and for stores with limited network access. Instead of real hardware, visitors use virtual devices, with features like Energy Service and Map View, so they can understand SmartThings anywhere.',
-  did:['Led the web app as Lead Engineer.','Built the virtual device experience, Energy Service and Map View for retail and online use.','Shown next to Lounge on the Samsung booth at IFA 2024 in Berlin.'],
-  decisions:[['Virtual devices','No dependency on physical hardware or a stable connection at the store.'],['Shared building blocks','Map View and energy features line up with the rest of the SmartThings family.']],
-  stack:['Next.js','Virtual devices','Energy Service','Map View'],
+  stack:['Next.js','Map View'],
   gallery:[['assets/img/ifa-virtual.webp','IFA 2024 Berlin: Virtual Studio on the Samsung booth','w6'],['assets/img/ifa-routine.webp','Routine sharing demo station','w6']],
   links:[['Live site','https://virtual.samsungiots.com']]},
- {id:'test-management', n:'05', name:'Test Management', cat:'Internal platform', status:'Shipped', role:'Senior Software Engineer', period:'Jun 2023 – Dec 2023', org:'Samsung R&D Institute Bangladesh',
-  tagline:'One place for QA teams to store test cases, plan runs and estimate effort.',
-  card:'assets/img/tms-cases.webp', cover:'assets/img/tms-cases.webp',
-  facts:[['7','teams used it'],['35','QA engineers'],['3','core features: repository, plans, estimates']],
-  overview:'A test management platform in the spirit of Test Collab, built to help development teams test effectively and avoid functional and compliance failures.',
-  did:['Built a centralized test repository for each team.','Built collaborative test plans that several people can work on together.','Built test-effort estimation, so leads can see how much QA time a plan needs.'],
-  decisions:[['Spring Boot services','REST APIs and Spring Data on a microservice layout.'],['React front end','Fast editing of large test-case lists and suites.'],['MySQL','Relational storage for suites, cases, plans and runs.']],
-  stack:['React.js','Spring Boot','Spring Data','REST API','Microservices','MySQL','Tomcat','Nginx'],
-  gallery:[['assets/img/tms-cases.webp','Test case repository with suite tree','w3'],['assets/img/tms-detail.webp','Test case detail with custom fields','w3']],
-  links:[['Test Collab, for reference','https://testcollab.io/']]}
+ {id:'test-management', n:'06', name:'AI Test Management', short:'AI Test Management', cat:'AI test automation', status:'Shipped', role:'', period:'Dec 2023 – Jun 2024', org:'Samsung R&D Institute Bangladesh',
+  tagline:'An LLM-based system that writes QA test cases from our UI/UX guide, then versions them through every cycle until release.',
+  card:'assets/img/tms-product.svg', cover:'assets/img/tms-product.svg',
+  hi:[['40+','QA engineers use it']],
+  facts:[['40+','QA engineers in the organization use it']],
+  overview:'Before an app goes to production, the organization\'s QA engineers test it. They write test cases from the product, run them, and then repeat the work every cycle: which issues were fixed, what must be re-tested, and what new problems appeared. That is slow and hard to keep organized. This project had two parts. The first was AI: I fine-tuned a model on our application\'s UI and UX guide so that it could write test cases from it. The second was the system around the model, built with an LLM, which keeps every test case versioned and follows it through the full cycle until release. It is used by more than 40 QA engineers.',
+  did:['Fine-tuned a model on our application\'s UI and UX guide, so it learns how the product should look and behave.','Generated test cases directly from the UI/UX guide, replacing the first draft QA engineers would otherwise write by hand.','Built the system around the model with an LLM, covering how test cases are created, stored and updated.','Added versioning: every test case and every change to it is kept, so a team can see what was tested in which cycle.','Followed the full cycle until release: tests, fixes, re-tests and new issues stay linked to the same test case.'],
+  flowsTitle:'Two parts, one system',
+  flows:[
+   {n:'01', name:'AI: test-case generation', trigger:'A new or updated UI/UX guide', steps:[['Collect the guide','The application\'s UI and UX guide is the training and reference material.'],['Fine-tune the model','The model is tuned on the guide, so it knows our screens, components and rules.'],['Generate test cases','For each screen or rule, the model writes test cases with steps and expected results.'],['Hand over to the system','The generated test cases go into the system as the first version.']]},
+   {n:'02', name:'System: versions and release cycle', trigger:'Test cases ready for a release', steps:[['Store the test cases','Each test case is saved with its source section of the guide.'],['Version every change','An edit creates a new version, and older versions stay available.'],['Run a test cycle','QA engineers run the test cases and record the results.'],['Track issues and fixes','Failed tests, fixes and re-tests stay linked to the same test case.'],['Re-test and release','The cycle repeats until the tests pass, and the full history is kept at release.']]}
+  ],
+  stack:['LLM','Model fine-tuning','Test-case generation','Versioning','UI/UX guidelines','QA process'],
+  gallery:[['assets/img/tms-product.svg','Product view: test cases generated from a UI/UX guide section, with a versioned release cycle. The contents are examples.','w6']],
+  links:[]},
+ {id:'5g-network-visualization', n:'07', name:'5G Network Data Visualization', short:'5G Network', cat:'5G network analytics', status:'5G networks', role:'', period:'Oct 2019 – Mar 2022', org:'Samsung R&D Institute Bangladesh', l4:'Domain',
+  tagline:'Interactive web views that turn Samsung 5G network data into something people can see, explore and act on.',
+  card:'assets/img/fiveg-product.svg', cover:'assets/img/fiveg-product.svg',
+  points:['Turned raw 5G network data into interactive views','Built both the React frontend and the REST APIs','Worked full stack, from MySQL and MongoDB to the screen'],
+  overview:'A 5G network produces a huge amount of data, and numbers in a table are hard for people to read. This project made that data visible. I built web apps that present Samsung 5G network data through interactive views, so engineers can look at the network, spot what stands out and dig into it. I worked on both sides: the React components people see and the REST APIs that deliver the data to them.',
+  did:['Built the frontend components that turn raw 5G network data into interactive charts and views.','Built the backend REST APIs that serve the network data to those views, with Spring Boot.','Worked across the full stack, from the data stores (MySQL and MongoDB) to the screen in React.','Used Protocol Buffers to exchange network data between services in a compact format.'],
+  stack:['React','Spring Boot','REST API','MySQL','MongoDB','Protocol Buffers'],
+  gallery:[['assets/img/fiveg-product.svg','Illustration: a 5G network map with a selected cell and trend panels. The picture is an example and contains no real data.','w6']],
+  links:[['Samsung Networks','https://www.samsung.com/global/business/networks/our-business/networks-business-overview/']]}
 ];
 var ARCHIVE=[
- {n:'06', name:'5G Network Data Visualization', sub:'Samsung · 2019 – 2022', role:'Software Engineer', text:'Web apps that present Samsung 5G network data through interactive views. I built the frontend components and the backend REST APIs.', stack:['Spring Boot','React','MySQL','MongoDB','Protocol Buffers'], links:[['Samsung Networks','https://www.samsung.com/global/business/networks/our-business/networks-business-overview/']]},
- {n:'07', name:'Atlassian Jira Plugin', sub:'Samsung · Mar – Apr 2022', role:'Software Engineer', text:'Built major features for an Atlassian Jira plugin used at Samsung. This work earned the Icon of the Month award for March and April 2022.', stack:['Atlassian Jira','Plugin development'], links:[['LinkedIn post','https://www.linkedin.com/posts/shaon-kanti-dhar_i-was-awarded-as-icon-of-the-month-for-mar-share-6980531423698964480-YvRd/']]},
  {n:'08', name:'Travel Assistant', sub:'NSTU · Oct 2018 – May 2019', role:'Final-year project', text:'An Android app for sharing trips. It checks uploaded photos with Firebase ML Kit and Microsoft\'s content moderation API, shows nearby hospitals, ATMs and police stations through Google APIs, lists tourist spots by district, and gives a 5-day weather forecast.', stack:['Java','Firebase','OpenCV','Google APIs','PHP & MySQL'], links:[['Project report','https://drive.google.com/file/d/1Dq82T5FAXLuBrWfTkniQ3sxqkyNYSYFE/']]},
  {n:'09', name:'Online Food Order & Review', sub:'NSTU · Mar – Jul 2018', role:'Course project', text:'An Android app for ordering from a restaurant menu by category, tracking order status and rating dishes out of five. The ratings feed each dish\'s overall score.', stack:['Java','JavaScript','Firebase','JSON','PHP & MySQL'], links:[]}
 ];
 var JOBS=[
  {when:'Dec 2025 – now', where:'Dhaka · On-site', title:'Project Leader', org:'Samsung R&D Institute Bangladesh', orgUrl:'https://research.samsung.com/srbd', proj:'SmartThings Pro',
-  pts:['Lead a team of 12 engineers across frontend, backend, database and cloud services.','Architected the SmartThings Pro B2B AI Agent and rolled it out to Starbucks.','Introduced request parallelization, client-side caching, query orchestration, list virtualization and real-time update processing.','Set up an AI-assisted development environment and internal workflows using LLMs, RAG and tool integration.'],
-  sk:['Technical project leadership','Team management','Vue.js','Front-end development']},
+  pts:['Lead a team of 12 engineers across frontend, backend, database and cloud services.','Designed and built the PQM Agent, an AI-driven SQE solution that checks every pushed commit and saves 30% of release time, so products reach the market faster. It is used across the whole organization.','Architected the SmartThings Pro B2B AI Agent and rolled it out to Starbucks.','Achieved a 15% improvement in load time and rendering speed on the SmartThings Pro platform by introducing request parallelization, client-side caching, query orchestration, list virtualization and real-time update processing.','Set up an AI-assisted development environment and internal workflows using LLMs, RAG and tool integration.'],
+  sk:['Technical project leadership','Vue.js','Front-end development','Backend development','Spring Boot']},
  {when:'Mar 2025 – Dec 2025', where:'Dhaka · On-site', title:'Lead Engineer', org:'Samsung R&D Institute Bangladesh', orgUrl:'https://research.samsung.com/srbd', proj:'Lounge, Virtual Studio, SmartThings Pro',
-  pts:['Led the web apps that let visitors control SmartThings devices at Samsung showrooms and trade shows.','Owned application architecture, API integration and real-time device interaction.','Built SmartThings Pro\'s Map View, multi-site management and property dashboard.'],
-  sk:['Three.js','Unity','Next.js','Kotlin','Micronaut']},
- {when:'Mar 2022 – Mar 2025', where:'Dhaka · On-site', title:'Senior Software Engineer', org:'Samsung R&D Institute Bangladesh', orgUrl:'https://research.samsung.com/srbd', proj:'Test Management System',
-  pts:['Built the Test Management System, used by 7 teams and 35 QA engineers.','Designed and built web software across the full lifecycle, from requirements to deployment, mainly in Java and TypeScript.'],
-  sk:['Java','React.js','Spring Boot','MySQL','MongoDB','Microservices','Data migration','Perforce','Jenkins','Nginx','Design patterns']},
+  pts:['Led 2 SmartThings retail web apps, Lounge and Virtual Studio, that let visitors control SmartThings devices at Samsung showrooms and trade shows.','Architected and led the development of an enterprise agentic RAG assistant that answers questions from documents and data, with page-level citations and role-based access. Used by 500+ engineers across the organization.','Owned application architecture, API integration and real-time device interaction.','Built SmartThings Pro\'s Map View, multi-site management and property dashboard.'],
+  sk:['Agentic RAG','Three.js','Unity','Next.js','Kotlin','Micronaut']},
+ {when:'Mar 2022 – Mar 2025', where:'Dhaka · On-site', title:'Senior Software Engineer', org:'Samsung R&D Institute Bangladesh', orgUrl:'https://research.samsung.com/srbd', proj:'AI Test Management',
+  pts:['Built an AI test-management system: fine-tuned a model on our UI/UX guide to generate QA test cases, and built the LLM-based system that versions them through the full release cycle. Used by 40+ QA engineers.','Applied the automated test procedure successfully in 60+ projects across the organization.'],
+  sk:['LLM fine-tuning','AI test automation','Test-case generation','Java','React.js','Spring Boot','MySQL']},
  {when:'Oct 2019 – Mar 2022', where:'Dhaka · On-site', title:'Software Engineer', org:'Samsung R&D Institute Bangladesh', orgUrl:'https://research.samsung.com/srbd', proj:'5G Network Data Visualization',
-  pts:['Built web apps and REST APIs that present Samsung 5G network data through interactive views.','Built internal web apps with Spring Boot, React, MySQL, MongoDB, Protocol Buffers and Helix Perforce.'],
-  sk:['Java','Spring Boot','Spring MVC','Spring Data','JPA','JUnit','MySQL','Git']},
+  pts:['Built the React web apps and Spring Boot REST APIs that turn Samsung 5G network data into interactive views engineers can explore.'],
+  sk:['Java','Spring Boot','React','MySQL','MongoDB','Microservices']},
  {when:'Feb 2016 – Oct 2019', where:'Noakhali · Self-employed', title:'Technical Content Writer', org:'NSTU Code Academy', orgUrl:'https://nstu-coding-planet.blogspot.com/', proj:'Competitive programming blog',
   pts:['Wrote hints and solutions for online judge problems and plain explanations of algorithms.'], sk:['Algorithms','Competitive programming']},
  {when:'Aug 2018', where:'Dhaka · Internship', title:'Software Engineering Intern', org:'Opus Technology Limited', orgUrl:'https://drive.google.com/file/d/1_R2xgnXgm8fviO5-jDCDv39_bnRxcr-W/view', proj:'Industrial attachment',
@@ -95,24 +115,17 @@ var JOBS=[
 ];
 var CAPS=[
  ['Languages',['TypeScript','Java','Kotlin','Python']],
- ['Frontend',['Vue.js','React','Next.js','Three.js','Unity 3D','Pinia','TanStack Query','Chart.js']],
- ['Backend',['Spring Boot','Micronaut','Spring MVC','Spring Data / JPA','REST APIs','Microservices','SSE','OAuth','Event-driven systems']],
- ['AI engineering',['LLM applications','Agent workflows','LangChain','RAG','Text-to-SQL','Tool / MCP integration']],
- ['Data & infrastructure',['PostgreSQL','MySQL','MongoDB','Amazon Aurora','Redis','RabbitMQ','Elasticsearch','Docker','Nginx','Jenkins','AWS']],
- ['Practice',['Technical project leadership','Team management','Full-stack architecture','Web performance','Design patterns','JUnit','Git / Perforce']]
+ ['Frontend',['Vue.js','React','Next.js','Three.js','Unity 3D']],
+ ['Backend',['Spring Boot','FastAPI','Micronaut','Spring Data / JPA','Microservices','SSE','OAuth','Event-driven systems']],
+ ['AI engineering',['LLM applications','Agent workflows','LangChain','RAG','Hybrid search & reranking','vLLM','Text-to-SQL','Tool / MCP integration']],
+ ['Data & infrastructure',['PostgreSQL','pgvector','MySQL','MongoDB','Amazon Aurora','Redis','RabbitMQ','Elasticsearch','Docker','Nginx','Jenkins','AWS']]
 ];
 var CERTS=[
  ['Samsung Global Software Certificate, Professional','Samsung Electronics · Feb 2022',null],
  ['Samsung Global Software Certificate, Advanced','Samsung Electronics · Oct 2019',null],
- ['Learning MongoDB','LinkedIn Learning · May 2022','https://www.linkedin.com/learning/certificates/ae235bd554bf3de1e3ea7580e0a6c1b564389a71c4d486499d23dc95d1adbd42/'],
- ['React.js Essential Training','LinkedIn Learning · May 2022','https://www.linkedin.com/learning/certificates/608f6aee0bb2d35b18fb41ccbcd2c9575434ab1e366926b0a825cf3cdce0b3b2/'],
- ['Learning Full-Stack JavaScript Development: MongoDB, Node, and React','LinkedIn Learning · Apr 2022','https://www.linkedin.com/learning/certificates/a7220cc09f3fbc98391ac79408343bf83f452b9f8bb5fa267de167d35d34774a/']
 ];
 var CONTESTS=[
  ['1st runner-up','Intra University Programming Contest 2016, NSTU'],
- ['2nd runner-up','Intra ICE Programming Contest 2016, NSTU'],
- ['Judge & problem setter','Intra ICE Programming Contest 2017, NSTU'],
- ['Judge & problem setter','ICE FEST Programming Contest 2018, NSTU'],
  ['Problem setter','Intra University Programming Contest 2018 and 2019, NSTU'],
  ['Vice President','ICE Programming Club, NSTU, and mentor to junior programmers']
 ];
@@ -121,28 +134,49 @@ var POST_HALF='https://www.linkedin.com/posts/shaon-kanti-dhar_half-yearly-achie
 var POST_CES='https://www.linkedin.com/feed/update/urn:li:activity:7303798804804182016/';
 var POST_ICON22='https://www.linkedin.com/posts/shaon-kanti-dhar_i-was-awarded-as-icon-of-the-month-for-mar-share-6980531423698964480-YvRd/';
 var AWARDS=[
+ {name:'Excellence Award', period:'Jan – Mar 2025', note:'For my research work on missed-speech recovery for voice calls and on Bluetooth multipoint security.', img:'assets/img/award-2025-q1.webp'},
  {name:'Excellence Award', period:'Oct – Dec 2024', note:'For my work on Next SmartThings and Lounge, which Samsung showed at CES 2025 in Las Vegas.', img:'assets/img/award.webp', link:POST_CES},
- {name:'Icon Award', period:'May – Jun 2024', note:'For my contribution to the company in May and June 2024.', img:'assets/img/icon-2024.webp', link:POST_HALF},
- {name:'Excellence Award', period:'Jan – Mar 2024', note:'For my contribution to the company from January to March 2024.', img:'assets/img/award-2024-q1.webp', link:POST_HALF},
- {name:'Icon of the Month', period:'Mar – Apr 2022', note:'For major contributions to features of an Atlassian Jira plugin.', img:'assets/img/icon-2022.webp', link:POST_ICON22}
+ {name:'Icon Award', period:'May – Jun 2024', note:'For my work on Virtual Studio, the SmartThings retail showroom for places with no devices and weak networks.', img:'assets/img/icon-2024.webp', link:POST_HALF},
+ {name:'Excellence Award', period:'Jan – Mar 2024', note:'For my work on AI Test Management: fine-tuning a model on our UI/UX guide so it writes QA test cases, and building the system that versions them through the release cycle.', img:'assets/img/award-2024-q1.webp', link:POST_HALF},
+ {name:'Icon of the Month', period:'Mar – Apr 2022', note:'For building major features of an internal tool used by Samsung teams.', img:'assets/img/icon-2022-framed.webp', link:POST_ICON22},
+ {name:'Excellence Award', period:'Apr – Jun 2020', note:'For my work on 5G Network Data Visualization, the web apps and APIs that present Samsung 5G network data.', img:'assets/img/award-2020-q2.webp'}
 ];
 var NEWS=[
- ['Dec 2025','Promoted to Project Leader on SmartThings Pro, leading a team of 12 engineers.'],
+ ['Dec 2025','Promoted to Project Leader on SmartThings Pro, leading 12 engineers.'],
+ ['Dec 2025 – now','Built the PQM Agent, an AI-driven SQE solution that saves 30% of release time across the organization.'],
+ ['Aug 2025','Co-inventor on a Samsung patent for reducing light flicker in multi-camera video recording.'],
+ ['Jul 2025 – Mar 2026','Architected and built an enterprise agentic RAG assistant, now used by 500+ engineers.'],
  ['Mar 2025','Promoted to Lead Engineer.'],
- ['Jan 2025','Lounge on show at CES 2025 in Las Vegas.'],
- ['Dec 2024','Proposed a method to protect calls and private notifications on Bluetooth multipoint earbuds.'],
- ['Oct – Dec 2024','Excellence Award for my work on Next SmartThings and Lounge.'],
- ['Sep 2024','Lounge and Virtual Studio on the Samsung booth at IFA 2024 in Berlin.'],
- ['May – Jun 2024','Icon Award from Samsung R&D Institute Bangladesh.'],
- ['Jan – Mar 2024','Excellence Award from Samsung R&D Institute Bangladesh.'],
- ['Jun 2023','Started building the Test Management System, later used by 7 teams.'],
+ ['Jan – Mar 2025','Excellence Award for research on missed-speech recovery and Bluetooth multipoint security.'],
+ ['Jan 2025','Lounge shown at CES 2025 in Las Vegas.'],
+ ['Oct – Dec 2024','Excellence Award for Next SmartThings and Lounge.'],
+ ['Sep 2024','Lounge and Virtual Studio shown at IFA 2024 in Berlin.'],
+ ['May – Jun 2024','Icon Award for Virtual Studio, the SmartThings retail showroom.'],
+ ['Jan – Mar 2024','Excellence Award for AI Test Management, now used by 40+ QA engineers.'],
  ['Mar 2022','Promoted to Senior Software Engineer.'],
- ['Mar – Apr 2022','Icon of the Month for features in an Atlassian Jira plugin.'],
- ['Feb 2022','Samsung Global Software Certificate, Professional level.'],
- ['Oct 2019','Joined Samsung R&D Institute Bangladesh as a Software Engineer. Passed the Samsung Global Software Certificate, Advanced level.'],
- ['2019','Graduated from NSTU in Information and Communication Engineering, CGPA 3.51 out of 4.']
+ ['Feb – Mar 2022','Co-inventor on a Samsung patent that separates intentional from accidental touches on wireless earbuds.'],
+ ['Oct 2019','Joined Samsung R&D Institute Bangladesh as a Software Engineer.']
 ];
 
-var RESEARCH_AREAS=[['Device security & privacy','Keeping private audio and input on wearables in the right hands.'],['On-device AI','Voice embeddings, audio classification and NLP running on the phone.'],['Wearable interaction','Telling intentional input apart from accidental input.'],['Camera systems','Keeping several cameras in sync while recording.']];
+var RESEARCH_AREAS=[['Security & Privacy','IoT security, AR/VR security, authentication and privacy.'],['Artificial Intelligence','AI agents, large language models, speech and audio processing, and edge AI.'],['Sensing & Interaction','Wearable sensing, context awareness and human–device interaction.'],['Imaging & Media','Computational imaging, video processing and multimedia systems.']];
 
-
+/* Academic documents. Only the redacted copies in assets/img/acad-*.webp are published
+   (date of birth, parents' names and ID, roll, registration and serial numbers are blacked out).
+   The original scans stay local and are git-ignored. */
+var ACADEMIC=[
+ {inst:'Noakhali Science and Technology University', what:'B.Sc. in Information and Communication Engineering', when:'2015 – 2019', score:'CGPA 3.51 / 4.00', docs:[
+  ['assets/img/acad-nstu-provisional.webp','Provisional certificate','Provisional certificate, B.Sc. (Engineering), NSTU'],
+  ['assets/img/acad-nstu-grade-conversion.webp','Grade-to-mark conversion','Grade to mark conversion certificate, NSTU'],
+  ['assets/img/acad-nstu-result-date.webp','Result publication','Certificate for the date of result publication, NSTU'],
+  ['assets/img/acad-nstu-transcript-1.webp','Transcript · page 1 of 5','Academic transcript, NSTU, page 1 of 5'],
+  ['assets/img/acad-nstu-transcript-2.webp','Transcript · page 2 of 5','Academic transcript, NSTU, page 2 of 5'],
+  ['assets/img/acad-nstu-transcript-3.webp','Transcript · page 3 of 5','Academic transcript, NSTU, page 3 of 5'],
+  ['assets/img/acad-nstu-transcript-4.webp','Transcript · page 4 of 5','Academic transcript, NSTU, page 4 of 5'],
+  ['assets/img/acad-nstu-transcript-5.webp','Transcript · page 5 of 5','Academic transcript, NSTU, page 5 of 5']]},
+ {inst:'Feni Government College', what:'Higher Secondary Certificate (HSC), Science', when:'2014', score:'GPA 4.80 / 5.00', docs:[
+  ['assets/img/acad-hsc-certificate.webp','Certificate','HSC certificate, Feni Government College, 2014'],
+  ['assets/img/acad-hsc-transcript.webp','Transcript','HSC academic transcript, Feni Government College, 2014']]},
+ {inst:'Feni Government Pilot High School', what:'Secondary School Certificate (SSC), Science', when:'2012', score:'GPA 5.00 / 5.00', docs:[
+  ['assets/img/acad-ssc-certificate.webp','Certificate','SSC certificate, Feni Government Pilot High School, 2012'],
+  ['assets/img/acad-ssc-transcript.webp','Transcript','SSC academic transcript, Feni Government Pilot High School, 2012']]}
+];

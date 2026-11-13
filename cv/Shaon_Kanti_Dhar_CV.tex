@@ -1,0 +1,240 @@
+% Shaon Kanti Dhar - CV
+% Build: tectonic cv/Shaon_Kanti_Dhar_CV.tex   (XeLaTeX-based; any XeLaTeX works too)
+% The published PDF lives at files/Shaon_Kanti_Dhar_CV.pdf
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage[top=0.45in,bottom=0.45in,left=0.7in,right=0.7in]{geometry}
+\usepackage{fontspec}
+\setmainfont{texgyreheros}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[colorlinks=true,urlcolor=black,linkcolor=black]{hyperref}
+\usepackage{setspace}
+\usepackage{needspace}
+
+\hypersetup{pdftitle={Shaon Kanti Dhar - CV},pdfauthor={Shaon Kanti Dhar},pdfsubject={Curriculum vitae}}
+\definecolor{muted}{HTML}{4A5568}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setstretch{1.02}
+\setlist[itemize]{leftmargin=1.25em,itemsep=1.2pt,topsep=2pt,parsep=0pt,partopsep=0pt,label=\textbullet}
+
+% ---- section headings: spaced capitals + rule ----
+\titleformat{\section}{\normalsize\bfseries\addfontfeature{LetterSpace=14}}{}{0pt}{\MakeUppercase}[\vspace{-5pt}\rule{\linewidth}{0.5pt}]
+\titlespacing*{\section}{0pt}{9pt}{4pt}
+
+% ---- helpers ----
+% \head{left, bold}{right, bold}
+\newcommand{\head}[2]{\Needspace{6\baselineskip}\textbf{#1}\hfill\textbf{#2}\par}
+% \sub{left, italic bold}{right}
+\newcommand{\sub}[2]{\textbf{\textit{#1}}\hfill\textbf{#2}\par}
+\newcommand{\skills}[1]{\par\vspace{1pt}{\small\color{muted}\textit{Technical skills:} #1}\par}
+\newcommand{\gap}{\vspace{3pt}}
+
+\begin{document}
+
+% ================= HEADER =================
+{\fontsize{24}{26}\selectfont\bfseries Shaon Kanti Dhar}\par\vspace{3pt}
+{\itshape Project Leader \quad|\quad Samsung R\&D Institute Bangladesh}\par\vspace{3pt}
+{\small Email: \href{mailto:shaonkantidhar07@gmail.com}{shaonkantidhar07@gmail.com} \,·\, LinkedIn: \href{https://www.linkedin.com/in/shaon-kanti-dhar}{linkedin.com/in/shaon-kanti-dhar}\par
+Portfolio: \href{https://shawonnstu.github.io/}{https://shawonnstu.github.io/} \,·\, Dhaka, Bangladesh}\par
+
+% ================= RESEARCH INTERESTS =================
+\section{Research Interests}
+Security and Privacy of Connected Devices (IoT, AR/VR and wearables), AI Agents and LLM Systems, Speech and Audio Processing, and Edge AI (exploring speaker verification, context-aware authentication, wearable sensing and retrieval-augmented generation)
+
+% ================= EDUCATION =================
+\section{Educational Background}
+\textbf{Noakhali Science and Technology University (NSTU), Noakhali, Bangladesh}\par
+B.Sc. in Information and Communication Engineering\hfill\textbf{2015 -- 2019}
+\begin{itemize}
+  \item CGPA: 3.51/4.00
+  \item Final-year project: Travel Assistant, an Android app with automated image screening
+\end{itemize}
+\gap
+\textbf{Feni Government College, Feni, Bangladesh}\par
+Higher Secondary Certificate (HSC), Science\hfill\textbf{2014}
+\begin{itemize}\item GPA: 4.80/5.00\end{itemize}
+\gap
+\textbf{Feni Government Pilot High School, Feni, Bangladesh}\par
+Secondary School Certificate (SSC), Science\hfill\textbf{2012}
+\begin{itemize}\item GPA: 5.00/5.00\end{itemize}
+
+% ================= RESEARCH EXPERIENCE =================
+\section{Research Experience}
+\head{Flicker Reduction in Multi-Camera Video Recording}{Aug 2025}
+\sub{Samsung Electronics \,·\, Co-inventor}{Patent}
+\begin{itemize}
+  \item Method that synchronizes camera settings to reduce light flicker when several cameras record at once
+\end{itemize}
+\gap
+\head{Missed-Speech Recovery for Voice Calls}{Mar 2025}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Co-inventor}{Patent research}
+\begin{itemize}
+  \item Detects when parts of a call are lost to disconnection, poor audio or noise, and recovers the missed speech so the conversation continues without gaps
+\end{itemize}
+\gap
+\head{Security for Bluetooth Multipoint Earbuds}{Dec 2024}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Co-inventor}{Invention proposal}
+\begin{itemize}
+  \item Identified how shared or multipoint earbuds can leak calls and private notifications to the wrong listener
+  \item Proposed per-earbud trust levels from on-device speaker verification and contextual signals (wear sensors, connection state, location)
+  \item Designed an audio sensitivity classifier using rules plus ASR and NLP; audio is routed only to sufficiently trusted earbuds
+\end{itemize}
+\gap
+\head{Shoulder-Surfing Defence for VR Typing}{May 2024 -- Aug 2024}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Co-inventor}{Invention proposal}
+\begin{itemize}
+  \item Proposed a virtual keyboard that moves, tilts or resizes every few keystrokes within the user's comfortable reach, so filmed hand movements cannot reveal a password
+  \item Added a security mode that adapts to the user's surroundings
+\end{itemize}
+\gap
+\head{Context-Aware Authentication Against Fraud}{Feb 2024 -- Apr 2024}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Co-inventor}{Patent research}
+\begin{itemize}
+  \item Authentication framework that senses behaviour and context, uses an LLM to spot deceptive or coerced situations, and raises security step by step to block fraudulent authorization
+\end{itemize}
+\gap
+\head{Conversational Q\&A on Audio Media}{Jan 2024}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Co-inventor}{}
+\begin{itemize}
+  \item Built a question-answering framework for audio embedded in documents and web pages: extracts the audio, transcribes it with Whisper and answers with GPT-3.5
+  \item Makes meetings, lectures and podcasts searchable by asking
+\end{itemize}
+\gap
+\head{Overexertion Warning for Wearables}{Dec 2023}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Co-inventor}{Invention proposal}
+\begin{itemize}
+  \item Proposed a smartwatch feature that warns users before they over-exercise, estimating blood lactate with optical sensing instead of bulky sweat pads
+  \item Combines heart rate, temperature, motion, sleep and food intake to avoid false alarms
+\end{itemize}
+\gap
+\head{Accidental-Touch Filtering for Wireless Earbuds}{Feb 2022 -- Mar 2022}
+\sub{Samsung Electronics \,·\, Co-inventor}{Patent}
+\begin{itemize}
+  \item Method using sensor data to separate intentional touches from accidental ones on earbud touchpads
+  \item \textbf{Patent Link:} \href{https://patents.google.com/patent/US20230229260A1/en}{US20230229260A1}
+\end{itemize}
+
+% ================= AI PROJECTS =================
+\Needspace{10\baselineskip}
+\section{AI Projects}
+\head{PQM Agent (Process Quality Management)}{Dec 2025 -- Present}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Designer \& Developer}{}
+\begin{itemize}
+  \item Runs automatically on every pushed commit: static analysis, unit tests, software architecture maturity (SAM) scoring and a regression check
+  \item AI-driven SQE solution that saves 30\% of release time; used across the whole organization
+\end{itemize}
+\gap
+\head{Enterprise AI Assistant}{Jul 2025 -- Mar 2026}
+\sub{Enterprise AI platform \,·\, Architect \& Lead Developer}{}
+\begin{itemize}
+  \item Architected an agentic RAG assistant that answers questions from documents and data, with page-level citations; used by 500+ engineers
+  \item Hybrid retrieval and reranking on open-weight LLMs; role-based and row-level access control
+\end{itemize}
+\gap
+\head{AI Test Management}{Dec 2023 -- Jun 2024}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Developer}{}
+\begin{itemize}
+  \item Fine-tuned a model on the application UI/UX guide to generate QA test cases
+  \item Built the LLM-based system that versions test cases through the full release cycle; used by 40+ QA engineers
+  \item Automated test procedure applied successfully in 60+ projects across the organization
+\end{itemize}
+\gap
+\head{SmartThings Pro B2B AI Agent}{2025 -- Present}
+\sub{Samsung R\&D Institute Bangladesh \,·\, Architect}{}
+\begin{itemize}
+  \item Architected the AI agent for Samsung's B2B building-management platform and led its rollout to Starbucks
+\end{itemize}
+
+% ================= EXPERIENCE =================
+\section{Experience}
+\head{Project Leader}{Dec 2025 -- Present}
+\sub{Samsung R\&D Institute Bangladesh, Dhaka, Bangladesh \,·\, SmartThings Pro}{}
+\begin{itemize}
+  \item Lead a team of 12 engineers across frontend, backend, database and cloud services
+  \item Designed and built the PQM Agent, an AI-driven SQE solution that checks every pushed commit and saves 30\% of release time; used across the whole organization
+  \item Architected the SmartThings Pro B2B AI Agent and rolled it out to Starbucks
+  \item Achieved a 15\% improvement in load time and rendering speed on the SmartThings Pro platform through request parallelization, client-side caching, query orchestration, list virtualization and real-time update processing
+  \item Set up an AI-assisted development environment and internal workflows using LLMs, RAG and tool integration
+\end{itemize}
+\skills{Technical project leadership, Vue.js, Front-end development, Backend development, Spring Boot}
+\gap
+\head{Lead Engineer}{Mar 2025 -- Dec 2025}
+\sub{Samsung R\&D Institute Bangladesh, Dhaka, Bangladesh \,·\, Lounge, Virtual Studio, SmartThings Pro}{}
+\begin{itemize}
+  \item Led 2 SmartThings retail web apps, Lounge and Virtual Studio, that let visitors control SmartThings devices at Samsung showrooms and trade shows
+  \item Architected and led the development of an enterprise agentic RAG assistant over documents and structured data, used by 500+ engineers
+  \item Owned application architecture, API integration and real-time device interaction
+  \item Built SmartThings Pro's Map View, multi-site management and property dashboard
+\end{itemize}
+\skills{Agentic RAG, Three.js, Unity, Next.js, Kotlin, Micronaut}
+\gap
+\head{Senior Software Engineer}{Mar 2022 -- Mar 2025}
+\sub{Samsung R\&D Institute Bangladesh, Dhaka, Bangladesh \,·\, AI Test Management}{}
+\begin{itemize}
+  \item Built an AI test-management system: fine-tuned a model on our UI/UX guide to generate QA test cases, and built the LLM-based system that versions them through the full release cycle; used by 40+ QA engineers
+  \item Applied the automated test procedure successfully in 60+ projects across the organization
+\end{itemize}
+\skills{LLM fine-tuning, AI test automation, Test-case generation, Java, React.js, Spring Boot, MySQL}
+\gap
+\head{Software Engineer}{Oct 2019 -- Mar 2022}
+\sub{Samsung R\&D Institute Bangladesh, Dhaka, Bangladesh \,·\, 5G Network Data Visualization}{}
+\begin{itemize}
+  \item Built the React web apps and Spring Boot REST APIs that turn Samsung 5G network data into interactive views engineers can explore
+\end{itemize}
+\skills{Java, Spring Boot, React, MySQL, MongoDB, Microservices}
+\gap
+\head{Technical Content Writer}{Feb 2016 -- Oct 2019}
+\sub{NSTU Code Academy (competitive programming blog)}{}
+\begin{itemize}
+  \item Wrote problem solutions and plain-language algorithm explanations: \href{https://nstu-coding-planet.blogspot.com/}{Blog}
+\end{itemize}
+\gap
+\head{Software Engineering Intern}{Aug 2018}
+\sub{Opus Technology Limited, Dhaka, Bangladesh}{}
+\begin{itemize}
+  \item Designed and built the base of an Android app with Java and Firebase Realtime Database
+\end{itemize}
+
+% ================= ACHIEVEMENTS =================
+\section{Achievements}
+\begin{itemize}
+  \item \textbf{Excellence Award}, Samsung R\&D Institute Bangladesh (Jan -- Mar 2025) \,--\, for research work on missed-speech recovery for voice calls and Bluetooth multipoint security
+  \item \textbf{Excellence Award}, Samsung R\&D Institute Bangladesh (Oct -- Dec 2024) \,--\, for work on Next SmartThings and Lounge, showcased at CES 2025, Las Vegas
+  \item \textbf{Icon Award}, Samsung R\&D Institute Bangladesh (May -- Jun 2024) \,--\, for work on Virtual Studio, the SmartThings retail showroom for places with no devices and weak networks
+  \item \textbf{Excellence Award}, Samsung R\&D Institute Bangladesh (Jan -- Mar 2024) \,--\, for work on AI Test Management, a fine-tuned model and system that generate and version QA test cases
+  \item \textbf{Icon of the Month}, Samsung R\&D Institute Bangladesh (Mar -- Apr 2022) \,--\, for building major features of an internal tool used by Samsung teams
+  \item \textbf{Excellence Award}, Samsung R\&D Institute Bangladesh (Apr -- Jun 2020) \,--\, for work on 5G Network Data Visualization, the web apps and APIs that present Samsung 5G network data
+  \item 1st Runner-up, Intra University Programming Contest 2016, NSTU
+  \item 2nd Runner-up, Intra ICE Programming Contest 2016, NSTU
+\end{itemize}
+
+% ================= LEADERSHIP AND SERVICE =================
+\section{Leadership and Service}
+\begin{itemize}
+  \item Vice President, ICE Programming Club, NSTU; mentored junior programmers
+  \item Judge and problem setter: Intra ICE Programming Contest 2017, ICE FEST Programming Contest 2018, NSTU
+  \item Problem setter: Intra University Programming Contest 2018 and 2019, NSTU
+\end{itemize}
+
+% ================= CERTIFICATIONS =================
+\section{Certifications}
+\begin{itemize}
+  \item Samsung Global Software Certificate, Professional Level, Samsung Electronics (Feb 2022)
+  \item Samsung Global Software Certificate, Advanced Level, Samsung Electronics (Oct 2019)
+\end{itemize}
+
+% ================= SKILLS =================
+\section{Skills}
+\begin{itemize}
+  \item \textbf{AI and ML:} LLM applications, agent workflows, LangChain, RAG, hybrid search and reranking, vLLM, text-to-SQL, MCP / tool integration
+  \item \textbf{Languages:} TypeScript, Java, Kotlin, Python
+  \item \textbf{Frontend:} Vue.js, React, Next.js, Three.js, Unity 3D
+  \item \textbf{Backend:} Spring Boot, FastAPI, Micronaut, Spring Data / JPA, Microservices, SSE, OAuth, Event-driven systems
+  \item \textbf{Data and Infrastructure:} PostgreSQL, pgvector, MySQL, MongoDB, Amazon Aurora, Redis, RabbitMQ, Elasticsearch, Docker, Nginx, Jenkins, AWS
+\end{itemize}
+
+\end{document}

@@ -16,7 +16,7 @@ Personal portfolio, served by GitHub Pages. Plain HTML, CSS and JavaScript, with
 
 - **Add a news item:** add a `['Mon YYYY','What happened.']` line at the top of `NEWS`.
 - **Add an award:** add an object to `AWARDS` and put its image in `assets/img/`.
-- **Add a case study:** copy an object in `PROJECTS` and give it a new `id`. Its page is then at `/#<id>`. The home floor plan shows the first five projects.
+- **Add a case study:** copy an object in `PROJECTS` and give it a new `id`. Its page is then at `/#<id>`. The home page's featured-projects panel and the Work page list every project, in order.
 - **Add a small project:** add an object to `ARCHIVE`.
 
 ## Pages

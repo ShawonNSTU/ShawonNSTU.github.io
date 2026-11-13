@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="PQM Agent: every commit push triggers static analysis, unit tests, a software architecture maturity score and a regression check.">
+<defs><radialGradient id="g1" cx="85%" cy="0%" r="70%"><stop offset="0" stop-color="#1b2c66" stop-opacity=".75"/><stop offset="1" stop-color="#0b1020" stop-opacity="0"/></radialGradient>
+<radialGradient id="g2" cx="0%" cy="100%" r="60%"><stop offset="0" stop-color="#0f4a3a" stop-opacity=".5"/><stop offset="1" stop-color="#0b1020" stop-opacity="0"/></radialGradient>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M1 1L9 5L1 9z" fill="#5d6b8c"/></marker></defs>
+<rect width="1600" height="900" fill="#0b1020"/><rect width="1600" height="900" fill="url(#g1)"/><rect width="1600" height="900" fill="url(#g2)"/>
+<rect x="80" y="130" width="1440" height="640" rx="26" fill="#0f1626" stroke="#222c44" stroke-width="2"/>
+<circle cx="112" cy="168" r="7" fill="#2a344d"/><circle cx="136" cy="168" r="7" fill="#2a344d"/><circle cx="160" cy="168" r="7" fill="#2a344d"/>
+<text x="190" y="175" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="22" font-weight="600" fill="#e8ecf6">PQM Agent</text>
+<rect x="318" y="150" width="330" height="36" rx="18" fill="none" stroke="#2a344d"/><text x="483" y="174" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#93a0bd">Process Quality Management</text>
+<rect x="1284" y="150" width="204" height="36" rx="18" fill="#0f2a24" stroke="#1f5a47"/><circle cx="1312" cy="168" r="6" fill="#3ddc97"/><text x="1330" y="174" font-family="'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#3ddc97">Runs on every push</text>
+<line x1="80" y1="210" x2="1520" y2="210" stroke="#222c44" stroke-width="2"/>
+<!-- developer -->
+<rect x="120" y="300" width="250" height="150" rx="18" fill="#141d31" stroke="#2a344d" stroke-width="2"/>
+<text x="245" y="345" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#7f8db0" letter-spacing="2">DEVELOPER</text>
+<text x="245" y="390" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="28" font-weight="600" fill="#e8ecf6">git push</text>
+<text x="245" y="425" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="16" fill="#93a0bd">any commit, any team</text>
+<line x1="372" y1="375" x2="458" y2="375" stroke="#5d6b8c" stroke-width="3" marker-end="url(#a)"/>
+<!-- agent -->
+<rect x="460" y="270" width="250" height="210" rx="18" fill="#16224a" stroke="#7196ff" stroke-width="2"/>
+<text x="585" y="320" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#9db6ff" letter-spacing="2">AI AGENT</text>
+<text x="585" y="372" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#ffffff">PQM Agent</text>
+<text x="585" y="412" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="16" fill="#b4c3ec">starts by itself,</text>
+<text x="585" y="436" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="16" fill="#b4c3ec">no manual step</text>
+<line x1="712" y1="375" x2="800" y2="290" stroke="#5d6b8c" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="802" y="250" width="430" height="80" rx="16" fill="#141d31" stroke="#2a344d" stroke-width="2"/>
+<rect x="822" y="270" width="40" height="40" rx="10" fill="#7196ff" opacity=".18"/><circle cx="842" cy="290" r="9" fill="#7196ff"/>
+<text x="884" y="288" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#e8ecf6">Static analysis</text>
+<text x="884" y="312" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="15" fill="#93a0bd">Defects and rule violations</text>
+<line x1="1234" y1="290" x2="1298" y2="375" stroke="#5d6b8c" stroke-width="2.5" marker-end="url(#a)"/>
+<line x1="712" y1="375" x2="800" y2="395" stroke="#5d6b8c" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="802" y="355" width="430" height="80" rx="16" fill="#141d31" stroke="#2a344d" stroke-width="2"/>
+<rect x="822" y="375" width="40" height="40" rx="10" fill="#3ddc97" opacity=".18"/><circle cx="842" cy="395" r="9" fill="#3ddc97"/>
+<text x="884" y="393" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#e8ecf6">Unit tests</text>
+<text x="884" y="417" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="15" fill="#93a0bd">Run against the commit</text>
+<line x1="1234" y1="395" x2="1298" y2="375" stroke="#5d6b8c" stroke-width="2.5" marker-end="url(#a)"/>
+<line x1="712" y1="375" x2="800" y2="500" stroke="#5d6b8c" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="802" y="460" width="430" height="80" rx="16" fill="#141d31" stroke="#2a344d" stroke-width="2"/>
+<rect x="822" y="480" width="40" height="40" rx="10" fill="#e8b54a" opacity=".18"/><circle cx="842" cy="500" r="9" fill="#e8b54a"/>
+<text x="884" y="498" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#e8ecf6">SAM</text>
+<text x="884" y="522" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="15" fill="#93a0bd">Software architecture maturity</text>
+<line x1="1234" y1="500" x2="1298" y2="375" stroke="#5d6b8c" stroke-width="2.5" marker-end="url(#a)"/>
+<line x1="712" y1="375" x2="800" y2="605" stroke="#5d6b8c" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="802" y="565" width="430" height="80" rx="16" fill="#141d31" stroke="#2a344d" stroke-width="2"/>
+<rect x="822" y="585" width="40" height="40" rx="10" fill="#ff7a90" opacity=".18"/><circle cx="842" cy="605" r="9" fill="#ff7a90"/>
+<text x="884" y="603" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#e8ecf6">Regression check</text>
+<text x="884" y="627" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="15" fill="#93a0bd">Did the change break anything?</text>
+<line x1="1234" y1="605" x2="1298" y2="375" stroke="#5d6b8c" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="1300" y="300" width="190" height="150" rx="18" fill="#0f2a24" stroke="#1f5a47" stroke-width="2"/>
+<text x="1395" y="345" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#6fd9a8" letter-spacing="2">RESULT</text>
+<text x="1395" y="388" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#e8ecf6">One report</text>
+<text x="1395" y="418" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="15" fill="#93a0bd">back to the developer</text>
+<text x="800" y="715" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="18" fill="#93a0bd">Used by the whole organization, so every team is held to the same checks.</text>
+</svg>
