@@ -4,6 +4,10 @@ name = "portfolio-chat"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 
+# Serve on workers.dev, but do not expose per-version preview URLs.
+workers_dev = true
+preview_urls = false
+
 # Workers AI binding: lets the Worker call open models with no API key.
 [ai]
 binding = "AI"
@@ -12,7 +16,7 @@ binding = "AI"
 [vars]
 ALLOWED_ORIGINS = "https://shawonnstu.github.io,http://localhost:8765,http://localhost:8000"
 # An open model hosted by Cloudflare. If this one is retired, pick another from the Workers AI catalogue.
-MODEL = "@cf/meta/llama-3.1-8b-instruct"
+MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8"
 
 # Optional rate limiting per visitor (30 questions per minute). Uncomment after `wrangler` supports it on your plan.
 # [[unsafe.bindings]]

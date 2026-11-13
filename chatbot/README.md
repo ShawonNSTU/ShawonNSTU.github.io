@@ -19,7 +19,15 @@ Visitor ──▶ chat panel (assets/js/chat.js)
                                       └─ Workers AI model ──▶ answer + links
 ```
 
-## Turn on the AI model (about 5 minutes, free, no card)
+## Status
+
+The Worker is deployed at `https://portfolio-chat.shaon-kanti.workers.dev` (account subdomain `shaon-kanti`) and the site points at it (`CHAT_ENDPOINT` in `assets/js/chat.js`). Model: `@cf/meta/llama-3.1-8b-instruct-fp8`.
+
+To redeploy after changing `data/content.js` or the Worker: `cd chatbot/worker && npm run deploy`.
+
+To watch errors while testing: `npx wrangler tail portfolio-chat --format pretty`. The Worker logs only the error reason, never a visitor's question.
+
+## Set it up from scratch (about 5 minutes, free, no card)
 
 You need a free Cloudflare account and Node.js 18+.
 
@@ -66,7 +74,7 @@ The built-in layer reads `data/content.js` directly in the browser, so it is alw
 
 Workers AI has a daily free allowance. Check the current figure in the Cloudflare dashboard, since it can change. When it runs out the Worker returns an error and the site uses the built-in answers until the next day.
 
-To use another model, change `MODEL` in `wrangler.toml` to any text-generation model in the Workers AI catalogue.
+Models get retired. The first model I used, `llama-3.1-8b-instruct`, was deprecated on 2026-05-30 and the Worker then returned `model_unavailable`. If the chat ever shows built-in answers only, run `npx wrangler tail portfolio-chat` and look for `model_error`. To list current models: `npx wrangler ai models`. Then change `MODEL` in `wrangler.toml` to a text-generation model that returns `{"response": ...}` (the Llama family does) and redeploy.
 
 ## Tests
 

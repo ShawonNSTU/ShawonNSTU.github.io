@@ -9,7 +9,7 @@
 
   /* Paste the deployed Worker address here, e.g. 'https://portfolio-chat.<your-subdomain>.workers.dev'.
      Leave it empty to use the built-in answers only. */
-  var CHAT_ENDPOINT = '';
+  var CHAT_ENDPOINT = 'https://portfolio-chat.shaon-kanti.workers.dev';
 
   if (!window.PortfolioChat || typeof PROJECTS === 'undefined') return;
   var E = window.PortfolioChat;
@@ -270,7 +270,7 @@
     var wait = h('div', { class: 'msg bot', 'aria-hidden': 'true' }, [h('div', { class: 'bubble typing' }, [h('i'), h('i'), h('i')])]);
     log.appendChild(wait); toBottom(true);
     var it = E.intent(q), local = E.answer(index, q);
-    if (CHAT_ENDPOINT && !it && !local.miss) { streamAI(q, local, wait); return; }
+    if (CHAT_ENDPOINT && !it) { streamAI(q, local, wait); return; }                  // open-ended questions go to the model too; its answer is limited to retrieved facts
     var think = reduce ? 0 : 420;
     setTimeout(function () { if (wait.parentNode) wait.parentNode.removeChild(wait); }, think);
     showLocal(local, think);

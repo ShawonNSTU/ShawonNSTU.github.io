@@ -97,7 +97,7 @@ export default {
 
     try {
       const wantStream = body && body.stream === true;
-      const out = await env.AI.run(env.MODEL || '@cf/meta/llama-3.1-8b-instruct', { messages, max_tokens: 260, temperature: 0.2, ...(wantStream ? { stream: true } : {}) });
+      const out = await env.AI.run(env.MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8', { messages, max_tokens: 260, temperature: 0.2, ...(wantStream ? { stream: true } : {}) });
       if (wantStream && out && typeof out.getReader === 'function') {
         return new Response(toClientStream(out, ctx.sources), { status: 200, headers: { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no', ...(cors || {}) } });
       }
@@ -107,6 +107,7 @@ export default {
       if (!answer) throw new Error('empty');
       return json({ answer, sources: ctx.sources }, 200, cors);
     } catch (e) {
+      console.error('model_error', String(e && e.message || e).slice(0, 300));          // the reason only: never the visitor's text
       return json({ error: 'model_unavailable' }, 503, cors);                          // the website falls back to its built-in answers
     }
   }
