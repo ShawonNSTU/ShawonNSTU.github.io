@@ -125,7 +125,38 @@
       summary: 'Email ' + email + ', or LinkedIn.', facts: ['Email: ' + email, 'LinkedIn: ' + LINKEDIN, 'Based in Dhaka, Bangladesh (UTC+6).', 'Open to conversations about engineering roles, AI and IoT projects, and research collaboration.'], kw: 'contact email reach hire hiring linkedin available collaboration' });
     add({ id: 'cv', type: 'cv', title: 'CV', sub: 'Curriculum vitae', url: '#cv', linkTitle: 'Open CV',
       summary: 'A three-page CV with research interests, research and AI experience, work history, awards and skills.', facts: ['The CV can be viewed or downloaded as a PDF on the CV page.'], kw: 'cv resume curriculum vitae download pdf' });
-    return { chunks: chunks, email: email };
+    return { chunks: chunks, email: email, highlights: buildHighlights(D) };
+  }
+
+  /* ---------------- fact sheet for "why hire / fund / admit him" questions ----------------
+     Keyword search is the wrong tool for these: it picks whatever shares a word with the question.
+     Instead the model gets this short, ranked list of what matters most, in the order that suits who is asking.
+     Counts come from the data; the few headline numbers are checked against the data by chatbot/test.js. */
+  function buildHighlights(D) {
+    var R = D.RESEARCH || [], patents = R.filter(function (r) { return r.kind === 'patent'; }), props = R.filter(function (r) { return r.kind !== 'patent'; });
+    var aw = D.AWARDS || [], nExc = aw.filter(function (a) { return /Excellence/i.test(a.name); }).length, nIcon = aw.length - nExc;
+    var years = []; aw.forEach(function (a) { (String(a.period).match(/\d{4}/g) || []).forEach(function (y) { years.push(+y); }); });
+    var y0 = years.length ? Math.min.apply(null, years) : '', y1 = years.length ? Math.max.apply(null, years) : '';
+    var word = function (n) { return ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'][n] || String(n); };
+    var pTitles = patents.map(function (r) { return r.title + ' (' + r.date.replace(/\s*\u2197/, '') + ')'; }).join('; ');
+    var qTitles = props.map(function (r) { return r.title + ' (' + r.date + ')'; }).join('; ');
+    return [
+      { id: 'hl-research', kind: 'research', title: 'Research and inventions', url: '#research',
+        line: 'Co-inventor on ' + word(patents.length) + ' Samsung patents and ' + word(props.length) + ' further invention proposals, on security and privacy, AI, wearable sensing and imaging.',
+        text: 'RESEARCH RECORD: co-inventor on ' + patents.length + ' Samsung patents (' + pTitles + ') and ' + props.length + ' further invention proposals (' + qTitles + '). Research areas: security and privacy (IoT, AR/VR, authentication), AI (agents, LLMs, speech and audio processing), wearable sensing and imaging. The Excellence Award for Jan-Mar 2025 recognised his research on missed-speech recovery for voice calls and Bluetooth multipoint security. NOTE: the portfolio lists patents and invention proposals; it does not list peer-reviewed publications.' },
+      { id: 'hl-ai', kind: 'ai', title: 'AI and LLM systems built end to end', url: '#enterprise-ai-assistant',
+        line: 'An enterprise agentic RAG assistant used by 500+ engineers, an AI quality agent that saves 30% of release time, and an LLM test-generation system used by 40+ QA engineers.',
+        text: 'APPLIED AI AND LLM SYSTEMS, BUILT END TO END: (1) an enterprise agentic RAG assistant with hybrid retrieval, reranking and role-based access, used by 500+ engineers (architect and lead developer); (2) the PQM Agent, an AI-driven software quality solution that saves 30% of release time across the organization; (3) an LLM-based test-management system, with a model fine-tuned on a UI/UX guide to generate QA test cases, used by 40+ QA engineers and applied in 60+ projects; (4) the SmartThings Pro B2B AI agent, rolled out to Starbucks.' },
+      { id: 'hl-academic', kind: 'academic', title: 'Academic record', url: '#education',
+        line: 'B.Sc. in Information and Communication Engineering at NSTU with a CGPA of 3.51/4.00; HSC GPA 4.80/5.00 and SSC GPA 5.00/5.00.',
+        text: 'ACADEMIC RECORD: B.Sc. in Information and Communication Engineering at Noakhali Science and Technology University (NSTU), 2015-2019, CGPA 3.51/4.00; Higher Secondary Certificate GPA 4.80/5.00 (2014); Secondary School Certificate GPA 5.00/5.00 (2012). Vice President of the university programming club and problem setter for university contests.' },
+      { id: 'hl-recognition', kind: 'recognition', title: 'Awards', url: '#recognition',
+        line: 'Six Samsung R&D awards (' + word(nExc) + ' Excellence, ' + word(nIcon) + ' Icon) between ' + y0 + ' and ' + y1 + '.',
+        text: 'RECOGNITION: ' + aw.length + ' Samsung R&D awards (' + nExc + ' Excellence, ' + nIcon + ' Icon) between ' + y0 + ' and ' + y1 + ', including work on AI Test Management, Virtual Studio, Lounge and research.' },
+      { id: 'hl-leadership', kind: 'leadership', title: 'Leadership and delivery', url: '#record',
+        line: '7+ years at Samsung R&D, promoted from Software Engineer to Project Leader; leads 12 engineers on SmartThings Pro.',
+        text: 'LEADERSHIP AND DELIVERY: 7+ years at Samsung R&D Institute Bangladesh, promoted from Software Engineer to Project Leader; leads 12 engineers on SmartThings Pro, a secured IoT and building-management platform; achieved a 15% improvement in load time and rendering speed.' }
+    ];
   }
 
   /* ---------------- search (BM25 over weighted fields) ---------------- */
@@ -139,7 +170,7 @@
       docs.push({ chunk: c, tf: tf, len: len, titleTok: tokens(c.title) });
       total += len;
     });
-    return { docs: docs, df: df, N: docs.length, avg: total / Math.max(1, docs.length), email: kb.email };
+    return { docs: docs, df: df, N: docs.length, avg: total / Math.max(1, docs.length), email: kb.email, highlights: kb.highlights || [] };
   }
 
   var TYPE_HINTS = [
@@ -159,6 +190,7 @@
     return null;
   }
 
+  var OLD_WORK = /\b(student|university|android|earlier|early|old|school|travel|food|course|thesis|final.year|nstu|archive)\b/i;
   function search(index, query, k) {
     var base = tokens(query), qt = {};
     base.forEach(function (t) { qt[t] = Math.max(qt[t] || 0, 1); });
@@ -183,6 +215,7 @@
           if (inQ >= 1 && inQ / d.titleTok.length >= 0.6 && (ty === 'project' || ty === 'archive' || ty === 'research')) { score *= 2; titleHit = true; }
         }
         if (!titleHit && hint && (ty === hint || (hint === 'project' && ty === 'archive'))) score *= 1.3;
+        if (ty === 'archive' && !OLD_WORK.test(String(query))) score *= 0.5;      // student projects only when the question is about them
         out.push({ chunk: d.chunk, score: score, doc: d, cov: baseN ? matched / baseN : 1, titleHit: titleHit });
       }
     });
@@ -213,13 +246,26 @@
     return null;
   }
 
+  /* "why should I hire / fund / admit him", "what are his strengths" ... questions that ask for a judgement, not a lookup */
+  var EVALUATE = /\b(strong(?:est)?|strengths?|capabilit\w*|why\b.{0,50}\b(hire|fund|admit|accept|choose|select|recruit|sponsor|supervise|take|consider|interview)|\b(phd|ph\.d|doctoral|doctorate|supervis\w*|advis(?:or|er)|admissions?|funding|fund|scholarships?|fellowships?|professor|hiring manager|recruiter)\b|suitable|good fit|fit for|stand out|unique|impress\w*|\bbest\b|most (?:important|notable|significant|valuable)|highlights?|pitch|recommend\w*|potential|promising|qualif\w+|what makes|selling points?|worth hiring)/i;
+  var ACADEMIC = /\b(research|researcher|professors?|phd|ph\.d|doctoral|doctorate|supervis\w*|advis(?:or|er)|admissions?|admit|fund\w*|scholarships?|fellowships?|research group|lab|grad(?:uate)? (?:school|program\w*|student)|masters?|msc|postdoc|academic)\b/i;
+  function audience(q) { return ACADEMIC.test(String(q || '')) ? 'academic' : 'industry'; }
+  function orderedHighlights(index, q) {
+    var order = audience(q) === 'academic' ? ['research', 'ai', 'academic', 'recognition', 'leadership'] : ['ai', 'leadership', 'research', 'recognition', 'academic'];
+    var hs = (index.highlights || []).slice();
+    hs.sort(function (a, b) { return order.indexOf(a.kind) - order.indexOf(b.kind); });
+    return hs;
+  }
+
   function intent(q) {
     var s = String(q || '').toLowerCase().trim();
     if (!s) return null;
     if (/\b(salary|pay|income|age|birth|born|dob|date of birth|address|phone|mobile|whatsapp|parents?|mother|father|family|religion|passport|nid|id number|roll number|marital|married|wife|girlfriend|visa)\b/.test(s)) return 'private';
     if (/^(hi|hello|hey|hola|yo|good (morning|afternoon|evening)|assalamu|salam|greetings)\b/.test(s) && rawTokens(s).length <= 4) return 'greet';
     if (/\b(thanks|thank you|thx|cheers|great|awesome|cool|nice)\b/.test(s) && rawTokens(s).length <= 5) return 'thanks';
-    if (/\b(contact|email|e-mail|reach|get in touch|in touch|hire|hiring|linkedin|available for|connect)\b/.test(s)) return 'contact';
+    if (/\b(contact|email|e-mail|reach|get in touch|in touch|linkedin|available for|connect)\b/.test(s)) return 'contact';
+    if (EVALUATE.test(s)) return 'evaluate';
+    if (/\b(hire|hiring)\b/.test(s)) return 'contact';
     if (/^(help\b|what can you (do|answer)|how (do|can) (i|you) (use|ask|talk to) (you|this|the (bot|chat))|what do you know|what should i ask)/.test(s)) return 'help';
     if (/^(who (are you|is (shaon|he|this|shaon kanti dhar))|tell me about (him|shaon|yourself|you)|about (him|shaon|you|yourself)|introduce (him|shaon|yourself)|give me a summary|summar[yi]s?e (him|shaon|his)|overview of (him|shaon))\b/.test(s)) return 'who';
     if (/\b(where|what)\b.*\b(study|studied|graduat\w*)\b/.test(s) || /\bwhich (university|college|school)\b/.test(s)) return 'list:education';
@@ -314,6 +360,13 @@
       return { text: 'Yes. Shaon is a co-inventor on ' + pats.length + ' Samsung patents, plus ' + props + ' further invention proposals.',
         items: pats.map(function (r) { return { title: r.title, url: '#research', text: r.date }; }), links: [{ title: 'All research', url: '#research' }], source: 'local' };
     }
+    if (it === 'evaluate') {
+      var hl = orderedHighlights(index, query).slice(0, 4), acad = audience(query) === 'academic';
+      var seen = {}, links = [];
+      hl.forEach(function (h) { if (!seen[h.url] && links.length < 3) { seen[h.url] = 1; links.push({ title: h.title, url: h.url }); } });
+      return { text: acad ? 'For a research position, these are the strongest points on the portfolio:' : 'These are the strongest points on the portfolio:',
+        items: hl.map(function (h) { return { title: h.title, url: h.url, text: h.line }; }), links: links, source: 'local' };
+    }
     if (it && it.indexOf('list:') === 0) return listAnswer(index, it.slice(5));
 
     var hits = search(index, query, 6), baseN = tokens(query).length;
@@ -363,7 +416,12 @@
       })()
     };
   }
-  function systemPrompt(email) {
+  function evalContext(index, query) {
+    var hl = orderedHighlights(index, query), seen = {}, sources = [];
+    hl.forEach(function (h) { if (!seen[h.url] && sources.length < 3) { seen[h.url] = 1; sources.push({ title: h.title, url: h.url }); } });
+    return { blocks: hl.map(function (h, i) { return '[' + (i + 1) + '] ' + h.text; }), sources: sources };
+  }
+  function systemPrompt(email, mode) {
     return [
       "You are the assistant on Shaon Kanti Dhar's portfolio website. You answer visitors' questions about Shaon's work, research, awards, experience, skills and education.",
       'Rules:',
@@ -375,12 +433,20 @@
       '5a. Never invent or expand an acronym. Use only these meanings: RAG = retrieval-augmented generation; LLM = large language model; SQE = software quality engineering; SAM = software architecture maturity; QA = quality assurance; IoT = Internet of Things; NSTU = Noakhali Science and Technology University; CGPA = cumulative grade point average. For any other acronym, use it exactly as written in the context without explaining it.',
       '5b. If asked for an opinion, a ranking or "the best", do not claim a superlative. Describe the notable facts from the context and let the visitor decide.',
       '6. If asked about something unrelated to Shaon or this portfolio, politely say you can only help with questions about his work and background.'
-    ].join('\n');
+    ].concat(mode ? [
+      '7. The visitor wants an ASSESSMENT of Shaon, not a lookup. Choose the strongest points for the visitor\'s purpose, most important first. If they ask for a number of points (for example "2 strengths"), give exactly that many.',
+      '7a. Each point must name specific evidence from the context: a project, a number, a year or an award. Quote numbers exactly as written in the context (for example 500+, 30%, 12, 60+); never replace them with vague words such as "many", "hundreds" or "numerous". Never pad with weak or generic points such as lists of programming languages or small student projects.',
+      '7d. State each fact only as the context states it. Do not combine facts into new claims (for example, do not say an invention proposal received an award unless the context says so).',
+      '7b. ' + (mode === 'academic'
+        ? 'The visitor is an academic (for example a professor deciding on PhD funding). Prioritise: his research record (patents and invention proposals, with their topics), his applied AI and LLM work, and his academic record. Be honest that the portfolio lists patents and invention proposals and no peer-reviewed publications; never claim publications, citations or prior funding.'
+        : 'The visitor is hiring or evaluating him for industry work. Prioritise: AI and LLM systems he built and their measured impact, then leadership and delivery, then research.'),
+      '7c. Start directly with the points. Do not begin with phrases such as "Based on the portfolio" or "I can only provide information from the context". Speak about Shaon in the third person even if the visitor says "I". Keep it under about 140 words.'
+    ] : []).join('\n');
   }
 
   return {
     SITE: SITE, LINKEDIN: LINKEDIN, PROFILE: PROFILE, HELP_Q: HELP_Q,
     buildKB: buildKB, makeIndex: makeIndex, search: search, intent: intent, answer: answer,
-    context: context, systemPrompt: systemPrompt, tokens: tokens, clip: clip
+    context: context, evalContext: evalContext, audience: audience, systemPrompt: systemPrompt, tokens: tokens, clip: clip
   };
 });

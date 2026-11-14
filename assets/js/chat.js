@@ -207,10 +207,11 @@
   /* model answer: real stream from the Worker */
   function streamAI(q, local, wait) {
     var ctl = new AbortController(), first = setTimeout(function () { ctl.abort(); }, 14000), cap = setTimeout(function () { ctl.abort(); }, 45000);
-    var row = null, typer = null, sources = [], gotText = false, ended = false, stopped = false, buf = '', dec = new TextDecoder(), reader = null, skip = null;
+    var idle = 0, row = null, typer = null, sources = [], gotText = false, ended = false, stopped = false, buf = '', dec = new TextDecoder(), reader = null, skip = null;
     function ensureRow() { if (row) return; if (wait.parentNode) wait.parentNode.removeChild(wait); row = newBotRow(); typer = Typer(row.textEl, function () { var m = { text: typer.text(), links: sources }; skip = revealRest(row, m, function () { complete(m, true); }); }); }
     function fallback() { clearTimeout(first); clearTimeout(cap); if (wait.parentNode) wait.parentNode.removeChild(wait); showLocal(local, 0); }
-    function endStream() { if (ended) return; ended = true; clearTimeout(first); clearTimeout(cap); if (!gotText) { fallback(); return; } typer.end(); }
+    function bump() { clearTimeout(idle); idle = setTimeout(function () { ctl.abort(); }, 12000); }      // the model went quiet midway: finish with what we have
+    function endStream() { if (ended) return; ended = true; clearTimeout(first); clearTimeout(cap); clearTimeout(idle); if (!gotText) { fallback(); return; } typer.end(); }
     function onEvent(d) {
       if (d.sources) sources = (d.sources || []).filter(function (s) { return s && safeUrl(s.url); }).slice(0, 3).map(function (s) { return { title: String(s.title || 'Open').slice(0, 60), url: s.url }; });
       if (typeof d.t === 'string' && d.t) { if (!gotText) { gotText = true; clearTimeout(first); } ensureRow(); typer.push(d.t); }
@@ -228,7 +229,7 @@
       });
     }
     active = { stop: function () {
-      stopped = true; ctl.abort(); clearTimeout(first); clearTimeout(cap);
+      stopped = true; ctl.abort(); clearTimeout(first); clearTimeout(cap); clearTimeout(idle);
       if (!gotText) { if (wait.parentNode) wait.parentNode.removeChild(wait); active = null; setBusy(false); return; }   // stopped before anything arrived
       if (typer) typer.flush(); if (skip) skip(); else endStream();
     } };
@@ -243,6 +244,7 @@
         function pump() {
           return reader.read().then(function (x) {
             if (x.done) { parse(dec.decode(), true); endStream(); return; }
+            bump();
             parse(dec.decode(x.value, { stream: true }), false);
             return pump();
           });
@@ -270,7 +272,7 @@
     var wait = h('div', { class: 'msg bot', 'aria-hidden': 'true' }, [h('div', { class: 'bubble typing' }, [h('i'), h('i'), h('i')])]);
     log.appendChild(wait); toBottom(true);
     var it = E.intent(q), local = E.answer(index, q);
-    if (CHAT_ENDPOINT && !it) { streamAI(q, local, wait); return; }                  // open-ended questions go to the model too; its answer is limited to retrieved facts
+    if (CHAT_ENDPOINT && (!it || it === 'evaluate')) { streamAI(q, local, wait); return; }                  // open-ended questions go to the model too; its answer is limited to retrieved facts
     var think = reduce ? 0 : 420;
     setTimeout(function () { if (wait.parentNode) wait.parentNode.removeChild(wait); }, think);
     showLocal(local, think);

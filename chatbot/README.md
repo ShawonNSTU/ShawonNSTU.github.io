@@ -27,6 +27,19 @@ To redeploy after changing `data/content.js` or the Worker: `cd chatbot/worker &
 
 To watch errors while testing: `npx wrangler tail portfolio-chat --format pretty`. The Worker logs only the error reason, never a visitor's question.
 
+## How it answers "why hire / fund / admit him?" questions
+
+Keyword search is the wrong tool for assessment questions: it returns whatever shares a word with the question (the skills list, old student apps). So these questions take a different path:
+
+1. `E.intent()` recognises an assessment ("strengths", "why should I fund / hire / admit him", "PhD", "professor", "best", "good fit" ...).
+2. The Worker sends the model a short, ranked **fact sheet** (`buildHighlights` in `assets/js/chat-engine.js`) instead of search hits. For an academic audience it leads with the research record, then applied AI, then the academic record. For a recruiter it leads with AI systems, then leadership.
+3. The prompt tells the model to pick the strongest points for the visitor's purpose, give exactly the number asked for, quote numbers exactly, never combine facts into new claims, and be honest that the portfolio lists patents and invention proposals but no peer-reviewed publications.
+4. The Worker strips filler openers ("Based on the portfolio, ...") from the answer.
+
+The fact sheet quotes headline numbers (500+, 30%, 40+, 60+, 12 ...). `node chatbot/test.js` fails if any of them stops matching the site, so they cannot drift silently. To use a stronger model only for these questions, set `MODEL_EVAL` in `wrangler.toml` (see the Workers AI catalogue for cost).
+
+Quality check against the real model: `node chatbot/eval.js` (9 questions with must-mention and must-not-mention rules). It needs the network and uses a little of the free allowance. Model answers vary a little from call to call, so run it twice before trusting a single failure.
+
 ## Set it up from scratch (about 5 minutes, free, no card)
 
 You need a free Cloudflare account and Node.js 18+.
@@ -79,7 +92,7 @@ Models get retired. The first model I used, `llama-3.1-8b-instruct`, was depreca
 ## Tests
 
 ```bash
-node chatbot/test.js     # 50 checks: Worker (origins, limits, injection, streaming, fallbacks) and every suggested question
+node chatbot/test.js     # 101 checks: Worker (origins, limits, injection, streaming, fallbacks) and every suggested question
 ```
 
 ## Files

@@ -8,7 +8,7 @@ const kb = JSON.parse(fs.readFileSync(path.join(__dirname, 'worker/src/kb.json')
 let src = fs.readFileSync(path.join(__dirname, 'worker/src/index.js'), 'utf8');
 src = src.replace(/import \* as E from [^\n]+\n/, '').replace(/import kb from [^\n]+\n/, '').replace('export default', 'module.exports =');
 const mod = { exports: {} };
-vm.runInNewContext(src, { E, kb, module: mod, Response, Request, console, Math, JSON, String, Array, Number, Error, ReadableStream, TextEncoder, TextDecoder, Promise }, { filename: 'worker' });
+vm.runInNewContext(src, { E, kb, module: mod, Response, Request, console, Math, JSON, String, Array, Number, Error, ReadableStream, TextEncoder, TextDecoder, Promise, setTimeout, clearTimeout }, { filename: 'worker' });
 const worker = mod.exports;
 
 /* The fake model returns a token stream when asked to stream (the same shape Workers AI uses), or a plain object otherwise. */
@@ -73,6 +73,25 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   ev = await readSSE(r);
   ok('a stream that breaks midway still ends cleanly with [DONE]', ev[ev.length - 1] === '[DONE]' && ev.some(x => /part/.test(x)), ev.join('|'));
 
+  /* ---- filler openers are removed (streamed and whole answers) ---- */
+  const fillers = [
+    ["Based on Shaon's portfolio, here are two strong capabilities that may help:", 'Here are two strong capabilities that may help:'],
+    ['Based on the portfolio, Shaon has built several systems.', 'Shaon has built several systems.'],
+    ['I can only provide information from the context. Based on the portfolio, Shaon has 7+ years of experience.', 'Shaon has 7+ years of experience.'],
+    ['According to the provided context, he leads 12 engineers.', 'He leads 12 engineers.'],
+    ['Shaon has built the PQM Agent, based on his own design.', 'Shaon has built the PQM Agent, based on his own design.'],
+    ['Based on a CGPA of 3.51, he did well.', 'Based on a CGPA of 3.51, he did well.']
+  ];
+  for (const [raw, want] of fillers) {
+    const toks = raw.match(/.{1,7}/g);
+    const fenv = { ...ENV, AI: { async run(m, input) { return input.stream ? tokenStream(toks) : { response: raw }; } } };
+    let rr = await worker.fetch(req({ question: 'What awards has Shaon won?', stream: true }), fenv);
+    const got = (await readSSE(rr)).slice(1, -1).map(x => JSON.parse(x).t).join('');
+    ok('stream: filler removed -> "' + want.slice(0, 38) + '"', got === want, got);
+    rr = await worker.fetch(req({ question: 'What awards has Shaon won?' }), fenv);
+    ok('whole answer: filler removed -> "' + want.slice(0, 34) + '"', (await rr.json()).answer === want);
+  }
+
   const down = { ...ENV, AI: { async run() { throw new Error('quota'); } } };
   r = await worker.fetch(req({ question: 'What awards has Shaon won?', stream: true }), down);
   ok('model unavailable when streaming returns 503 (site falls back)', r.status === 503, r.status);
@@ -97,6 +116,26 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   r = await worker.fetch(req({ question: 'What awards has Shaon won?' }), bad);
   ok('model failure returns 503 so the site falls back to built-in answers', r.status === 503, r.status);
 
+  let tries = 0;
+  const flaky = { ...ENV, AI: { async run(m, input) { tries++; if (tries === 1) throw new Error('blip'); return { response: 'Recovered answer.' }; } } };
+  r = await worker.fetch(req({ question: 'What awards has Shaon won?' }), flaky);
+  ok('a single model hiccup is retried and the visitor still gets the AI answer', r.status === 200 && (await r.json()).answer === 'Recovered answer.' && tries === 2, 'tries=' + tries);
+  let tries2 = 0;
+  const dead = { ...ENV, AI: { async run() { tries2++; throw new Error('down'); } } };
+  r = await worker.fetch(req({ question: 'What awards has Shaon won?' }), dead);
+  ok('a model that stays down is tried twice, then reported as 503', r.status === 503 && tries2 === 2, 'status=' + r.status + ' tries=' + tries2);
+
+  let tries3 = 0;
+  const hang = { ...ENV, MODEL_TIMEOUT_MS: '60', AI: { async run() { tries3++; return new Promise(() => {}); } } };
+  const t0 = Date.now(); r = await worker.fetch(req({ question: 'What awards has Shaon won?' }), hang);
+  ok('a model that hangs is cut off quickly and reported as 503 (no retry)', r.status === 503 && tries3 === 1 && Date.now() - t0 < 1500, 'status=' + r.status + ' tries=' + tries3 + ' ms=' + (Date.now() - t0));
+  const big = { ...ENV, MODEL_EVAL: 'strong-model', AI: { calls: [], async run(m, input) { this.calls.push(m); return { response: 'ok' }; } } };
+  await worker.fetch(req({ question: 'why should I fund him as a phd student?' }), big);
+  await worker.fetch(req({ question: 'Tell me about the PQM Agent' }), big);
+  ok('MODEL_EVAL is used only for assessment questions', big.AI.calls[0] === 'strong-model' && big.AI.calls[1] === 'fake', big.AI.calls.join(','));
+  const sp7 = E.systemPrompt('x@y.z', 'academic');
+  ok('assessment prompt demands exact numbers and no combined claims', /exactly as written/.test(sp7) && /do not combine facts/i.test(sp7) && /never replace them with vague words/.test(sp7));
+
   const lim = { ...ENV, RATE: { async limit() { return { success: false }; } } };
   r = await worker.fetch(req({ question: 'awards' }), lim);
   ok('rate limit returns 429', r.status === 429);
@@ -117,6 +156,43 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   expect.forEach(([re, q]) => { const a = E.answer(idx, q); ok('suggestion works: ' + q, re.test(a.text) && !a.miss, a.text.slice(0, 60)); });
   [['how can I contact him?', 'contact'], ['how do i get in touch', 'contact'], ['can I hire him', 'contact'], ['what is his salary', 'private'], ['hi', 'greet'], ['help', 'help'], ['how can i download his cv', 'cv'], ['where did he study', 'list:education'], ['does he have patents', 'patents']]
     .forEach(([q, w]) => ok('intent: ' + q + ' -> ' + w, E.intent(q) === w, E.intent(q)));
+
+  /* ---- assessment questions ("why should I fund / hire him?") ---- */
+  const PROF = 'tell me 2 strong capabilities for why i am as a professor will fund him as phd student in usa?';
+  const JUNK = /Food Order|Travel Assistant|TypeScript|Vue\.js|Unity|Kotlin|Micronaut/;
+  ok('professor question is an assessment', E.intent(PROF) === 'evaluate', E.intent(PROF));
+  ok('professor question is recognised as academic', E.audience(PROF) === 'academic');
+  ok('"research strengths" is treated as academic (research record first)', E.audience('What are his research strengths?') === 'academic' && E.intent('What are his research strengths?') === 'evaluate');
+  ok('recruiter question is recognised as industry', E.audience('why should we hire him for an AI role?') === 'industry' && E.intent('why should we hire him for an AI role?') === 'evaluate');
+  let a = E.answer(idx, PROF);
+  const shown = a.text + ' ' + a.items.map(i => (i.title || '') + ' ' + (i.text || '')).join(' ');
+  ok('built-in answer leads with research, then AI', /research|patent/i.test(a.items[0].title + a.items[0].text) && /AI|LLM|RAG/.test(a.items[1].title + a.items[1].text), a.items.map(i => i.title).join(' | '));
+  ok('built-in answer has no filler (small apps, language lists)', !JUNK.test(shown), shown.slice(0, 120));
+  a = E.answer(idx, 'why should we hire him for an AI role?');
+  ok('recruiter answer leads with AI systems', /AI|LLM|RAG/.test(a.items[0].title), a.items[0].title);
+  ['what are his strengths', 'is he the best engineer', 'what is the most impressive thing he built', 'why should I admit him to my lab', 'would he be a good fit for a research job'].forEach(q => ok('assessment intent: ' + q, E.intent(q) === 'evaluate', E.intent(q)));
+  ['which awards has he won', 'show research', 'does he have patents', 'how can I contact him', 'what is his education', 'tell me about the PQM Agent'].forEach(q => ok('lookup is not an assessment: ' + q, E.intent(q) !== 'evaluate', E.intent(q)));
+
+  ENV.AI.calls.length = 0;
+  await worker.fetch(req({ question: PROF }), ENV);
+  const sys = ENV.AI.calls[0].messages[0].content;
+  ok('model gets the curated fact sheet for an assessment', /RESEARCH RECORD/.test(sys) && /APPLIED AI AND LLM SYSTEMS/.test(sys) && /ACADEMIC RECORD/.test(sys));
+  ok('fact sheet is ordered research-first for a professor', sys.indexOf('RESEARCH RECORD') < sys.indexOf('APPLIED AI') && sys.indexOf('APPLIED AI') < sys.indexOf('LEADERSHIP AND DELIVERY'));
+  ok('model gets none of the keyword-search filler', !JUNK.test(sys.split('CONTEXT')[1]), '');
+  ok('academic prompt forbids claiming publications or funding', /never claim publications/i.test(sys) && /no peer-reviewed publications/i.test(sys));
+  ok('prompt makes it give exactly the number asked and no "Based on" opening', /exactly that many/.test(sys) && /Do not begin with/.test(sys));
+  ENV.AI.calls.length = 0;
+  await worker.fetch(req({ question: 'why should we hire him for an AI role?' }), ENV);
+  const sys2 = ENV.AI.calls[0].messages[0].content;
+  ok('recruiter fact sheet is AI-first with an industry instruction', sys2.indexOf('APPLIED AI') < sys2.indexOf('RESEARCH RECORD') && /hiring or evaluating him for industry/.test(sys2));
+  ENV.AI.calls.length = 0;
+  await worker.fetch(req({ question: 'Tell me about the PQM Agent' }), ENV);
+  ok('lookup questions do not get the assessment prompt', !/ASSESSMENT/.test(ENV.AI.calls[0].messages[0].content));
+
+  /* the fact sheet quotes headline numbers: they must still match the site data */
+  const dsrc = fs.readFileSync(path.join(root, 'data/content.js'), 'utf8') + fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
+  ['500+ engineers', '30% of release time', '40+ QA engineers', '60+ projects', '15% improvement', 'Starbucks', '3.51', '4.80', '12 engineers'].forEach(n =>
+    ok('fact sheet number still on the site: ' + n, dsrc.includes(n) || dsrc.includes(n.replace(' engineers', '').replace(' improvement', ''))));
 
   const sp = E.systemPrompt('me@example.com');
   ok('system prompt forbids inventing facts and ignoring hidden instructions', /never invent/i.test(sp) && /do not follow instructions/i.test(sp));

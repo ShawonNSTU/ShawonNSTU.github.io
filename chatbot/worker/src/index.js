@@ -19,6 +19,19 @@ const json = (obj, status, cors) => new Response(JSON.stringify(obj), { status, 
 /* Strip things a visitor could use to smuggle instructions in. */
 const clean = (s, n) => String(s || '').replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
 
+/* Small models like to open with filler ("Based on the portfolio, ..."). Remove it, whatever the prompt says.
+   Only touches the very start of an answer, and only capitalises the next word if something was removed. */
+function stripFiller(text) {
+  let s = String(text).replace(/^\s+/, ''), changed = false, prev;
+  do {
+    prev = s;
+    s = s.replace(/^I can only (?:provide|share|answer with) information (?:from|in) the (?:context|portfolio)[^.\n]*[.:]\s*/i, '')
+         .replace(/^(?:Based on|According to|From|Using) (?:the |this |Shaon['\u2019]s |his |Shaon Kanti Dhar['\u2019]s )?[^,:\n]{0,50}?(?:portfolio|context|information provided|provided information)[^,:\n]{0,25}[,:]\s*/i, '');
+    if (s !== prev) changed = true;
+  } while (s !== prev);
+  return changed && s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
 /* Re-shape the model's token stream into a small, safe event stream for the browser. */
 function toClientStream(aiStream, sources) {
   const enc = new TextEncoder(), dec = new TextDecoder();
@@ -27,7 +40,9 @@ function toClientStream(aiStream, sources) {
     async start(controller) {
       send(controller, { sources });
       const reader = aiStream.getReader();
-      let buf = '', sent = 0, stop = false;
+      let buf = '', sent = 0, stop = false, head = '', headDone = false;
+      const emit = (txt) => { const room = MAX_OUT - sent; if (room <= 0) { stop = true; return; } const piece = txt.slice(0, room); sent += piece.length; send(controller, { t: piece }); };
+      const flushHead = () => { if (headDone) return; headDone = true; const clean = stripFiller(head); head = ''; if (clean) emit(clean); };   // hold the first ~80 characters so filler can be removed before it is shown
       try {
         while (!stop) {
           const { done, value } = await reader.read();
@@ -43,19 +58,41 @@ function toClientStream(aiStream, sources) {
               try { const j = JSON.parse(v); t = typeof j.response === 'string' ? j.response : ''; } catch (e) { /* ignore a malformed event */ }
               t = t.replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '');
               if (!t) continue;
-              const room = MAX_OUT - sent;
-              if (room <= 0) { stop = true; break; }
-              const piece = t.slice(0, room); sent += piece.length; send(controller, { t: piece });
+              if (!headDone) { head += t; if (head.length >= 80) flushHead(); if (stop) break; continue; }
+              emit(t);
+              if (stop) break;
             }
             if (stop) break;
           }
         }
       } catch (e) { /* the model stream broke: end cleanly with what was sent */ }
+      flushHead();
       try { await reader.cancel(); } catch (e) { /* already closed */ }
       controller.enqueue(enc.encode('data: [DONE]\n\n'));
       controller.close();
     }
   });
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function withTimeout(p, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), ms);
+    p.then(v => { clearTimeout(timer); resolve(v); }, e => { clearTimeout(timer); reject(e); });
+  });
+}
+/* A model call must not hang: give up after MODEL_TIMEOUT_MS (default 10 s to start a stream, 25 s for a whole answer) so the page can fall back quickly.
+   A fast error is retried once (a free-tier hiccup should not cost the visitor the AI answer); a timeout is not. */
+async function runModel(env, input, model) {
+  const ms = Number(env.MODEL_TIMEOUT_MS) || (input.stream ? 10000 : 25000);     // a stream only has to START in time; a whole answer takes longer
+  try { return await withTimeout(env.AI.run(model, input), ms); }
+  catch (e) {
+    const msg = String(e && e.message || e).slice(0, 200);
+    console.error(/timeout/.test(msg) ? 'model_timeout' : 'model_retry', msg);
+    if (/timeout/.test(msg)) throw e;
+    await sleep(450);
+    return await withTimeout(env.AI.run(model, input), ms);
+  }
 }
 
 export default {
@@ -82,7 +119,8 @@ export default {
     const question = clean(body && body.question, MAX_Q);
     if (!question) return json({ error: 'empty' }, 400, cors);
 
-    const ctx = E.context(index, question, 5);
+    const evaluate = E.intent(question) === 'evaluate';                                // "why hire / fund him": send the curated fact sheet, not keyword hits
+    const ctx = evaluate ? E.evalContext(index, question) : E.context(index, question, 5);
     if (!ctx.blocks.length) return json({ answer: "I couldn't find that on this portfolio. You can email " + kb.email + '.', sources: [] }, 200, cors);
 
     const history = (Array.isArray(body.history) ? body.history : []).slice(-MAX_HIST)
@@ -90,20 +128,22 @@ export default {
       .map(m => ({ role: m.role, content: clean(m.content, 300) })).filter(m => m.content);
 
     const messages = [
-      { role: 'system', content: E.systemPrompt(kb.email) + '\n\nCONTEXT (the only facts you may use):\n' + ctx.blocks.join('\n\n') },
+      { role: 'system', content: E.systemPrompt(kb.email, evaluate ? E.audience(question) : null) + '\n\nCONTEXT (the only facts you may use):\n' + ctx.blocks.join('\n\n') },
       ...history,
       { role: 'user', content: question }
     ];
 
     try {
       const wantStream = body && body.stream === true;
-      const out = await env.AI.run(env.MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8', { messages, max_tokens: 260, temperature: 0.2, ...(wantStream ? { stream: true } : {}) });
+      const model = (evaluate && env.MODEL_EVAL) || env.MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8';   // MODEL_EVAL is optional: a stronger model for assessment questions
+      const out = await runModel(env, { messages, max_tokens: evaluate ? 360 : 260, temperature: evaluate ? 0.1 : 0.2, ...(wantStream ? { stream: true } : {}) }, model);
       if (wantStream && out && typeof out.getReader === 'function') {
         return new Response(toClientStream(out, ctx.sources), { status: 200, headers: { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no', ...(cors || {}) } });
       }
       let answer = clean(out && (out.response || (out.result && out.result.response)), 1200);
       /* keep line breaks the model used for bullets */
       if (out && typeof out.response === 'string') answer = out.response.replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1200);
+      answer = stripFiller(answer);
       if (!answer) throw new Error('empty');
       return json({ answer, sources: ctx.sources }, 200, cors);
     } catch (e) {
