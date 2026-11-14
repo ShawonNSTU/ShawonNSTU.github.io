@@ -207,41 +207,56 @@ function vContact(){
 
 function vMatch(){
   return '<div class="wrap"><div class="case-hero"><span class="eyebrow">Role matcher</span><h1>Match me to <em>your role</em></h1>'+
-  '<p class="muted" style="max-width:62ch; margin-top:18px; font-size:17px">Paste a job description or a list of requirements. You get a requirement-by-requirement view of what this portfolio backs up with evidence, and what it does not. It never claims a skill that is not on the portfolio.</p></div>'+
+  '<p class="muted" style="max-width:62ch; margin-top:18px; font-size:17px">Paste a job description or a list of requirements. You get a requirement-by-requirement view of what this portfolio backs up with evidence, and what it does not. The AI reads the role; every result is then checked against the portfolio, so it never claims a skill that is not there.</p></div>'+
   '<section class="sec" style="padding-top:36px"><div class="match">'+
     '<div class="match-in"><label for="jd" class="mono muted">Job description or requirements</label>'+
-    '<textarea id="jd" rows="12" maxlength="8000" placeholder="Paste the role here…" spellcheck="false"></textarea>'+
+    '<textarea id="jd" rows="12" maxlength="5000" placeholder="Paste the role here…" spellcheck="false"></textarea>'+
     '<div class="actions"><button class="btn dark" type="button" id="jd-go">Check the match'+arrow+'</button><button class="btn" type="button" id="jd-ex">Try an example</button><button class="btn" type="button" id="jd-clear">Clear</button></div>'+
-    '<p class="muted mono" style="font-size:12px; margin-top:14px">Runs in your browser. What you paste is not sent anywhere or stored.</p></div>'+
+    '<p class="muted mono" style="font-size:12px; margin-top:14px">When you press Check, the text is sent to an AI model (open model on Cloudflare) to read it. This site does not store it. Do not paste anything confidential.</p></div>'+
     '<div class="match-out" id="jd-out" aria-live="polite"><p class="muted">Results appear here.</p></div>'+
   '</div></section></div>';
 }
 function matchResult(r){
   if(!r.found && !r.notes.length) return '<p><b>No recognisable requirements found.</b></p><p class="muted" style="margin-top:8px">Paste more of the job description, including the skills and tools it asks for. Or email <a href="mailto:'+EMAIL+'">'+EMAIL+'</a> and describe the role.</p>';
   var lab={strong:'Direct evidence',some:'Related',none:'Not shown'}, ic={strong:'●',some:'◐',none:'○'};
-  var n={strong:0,some:0,none:0}; r.reqs.forEach(function(q){n[q.status]++});
+  var must=r.reqs.filter(function(q){return q.importance!=='nice'}), basis=r.source==='ai'&&must.length?must:r.reqs;
+  var n={strong:0,some:0,none:0}; basis.forEach(function(q){n[q.status]++});
   var rows=r.reqs.map(function(q){
     var ev=q.evidence.map(function(e){return '<a href="'+esc(e.url)+'">'+esc(e.title)+'</a>'+(e.why?' <span class="muted">('+esc(e.why)+')</span>':'')}).join(' · ');
-    return '<li class="m-'+q.status+'"><span class="m-b mono"><span aria-hidden="true">'+ic[q.status]+'</span> '+lab[q.status]+'</span><div><b>'+esc(q.label)+'</b><div class="muted">'+(ev||esc(q.note)||'Nothing on the portfolio shows this.')+'</div></div></li>';
+    var body=r.source==='ai'?(esc(q.note)||'Nothing on the portfolio shows this.')+(ev?'<div class="m-ev">'+ev+'</div>':''):(ev||esc(q.note)||'Nothing on the portfolio shows this.');
+    return '<li class="m-'+q.status+'"><span class="m-b mono"><span aria-hidden="true">'+ic[q.status]+'</span> '+lab[q.status]+'</span><div><b>'+esc(q.label)+'</b>'+(r.source==='ai'&&q.importance==='nice'?' <span class="m-tag mono">nice to have</span>':'')+'<div class="muted">'+body+'</div></div></li>';
   }).join('');
   var notes=r.notes.map(function(q){return '<li class="m-'+q.status+'"><span class="m-b mono"><span aria-hidden="true">'+ic[q.status]+'</span> '+(q.status==='strong'?'Met':'Not met')+'</span><div><b>'+esc(q.label)+'</b><div class="muted">'+esc(q.text)+'</div></div></li>'}).join('');
-  return '<h2 class="m-h">'+n.strong+' of '+r.found+' requirements have direct evidence</h2>'+
+  var head=r.source==='ai'&&must.length?n.strong+' of '+basis.length+' must-have requirements have direct evidence':n.strong+' of '+r.found+' requirements have direct evidence';
+  return (r.role?'<p class="mono muted" style="font-size:12px">'+esc(r.role)+'</p>':'')+'<h2 class="m-h">'+head+'</h2>'+
     '<p class="muted">'+n.some+' related, '+n.none+' not shown. Each item links to the page that backs it up.</p>'+
     '<ul class="m-list">'+rows+notes+'</ul>'+
+    '<p class="muted mono" style="font-size:12px; margin-top:16px">'+(r.source==='ai'?'Read by an AI model, then checked: every link points to real portfolio content, and an item with no evidence is never shown as a match. Verify anything important in the linked pages.':'Matched by keywords in your browser (the AI model was unavailable). It only knows a fixed list of topics, so treat it as a rough guide.')+'</p>'+
     '<div class="actions" style="margin-top:22px"><a class="btn dark" href="mailto:'+EMAIL+'?subject='+encodeURIComponent('Role for Shaon Kanti Dhar')+'">Email Shaon about this role'+arrow+'</a><a class="btn" href="#cv">View CV</a></div>';
 }
 function wireMatch(){
-  var ta=document.getElementById('jd'), out=document.getElementById('jd-out'); if(!ta) return;
+  var ta=document.getElementById('jd'), out=document.getElementById('jd-out'), go_=document.getElementById('jd-go'); if(!ta) return;
+  var seq=0, ENDPOINT='https://portfolio-chat.shaon-kanti.workers.dev/match';
+  function local(t){
+    var C=window.PortfolioChat, idx=C.makeIndex(C.buildKB({EMAIL:EMAIL,PROJECTS:PROJECTS,ARCHIVE:ARCHIVE,JOBS:JOBS,CAPS:CAPS,CERTS:CERTS,CONTESTS:CONTESTS,NEWS:NEWS,AWARDS:AWARDS,RESEARCH:RESEARCH}));
+    var r=C.matchRole(idx,t); r.source='local'; return r;
+  }
   function go(){
     var t=ta.value.trim();
     if(t.length<30){out.innerHTML='<p class="muted">Paste a longer description (at least a few lines) to check.</p>'; return}
-    var idx=window.PortfolioChat.makeIndex(window.PortfolioChat.buildKB({EMAIL:EMAIL,PROJECTS:PROJECTS,ARCHIVE:ARCHIVE,JOBS:JOBS,CAPS:CAPS,CERTS:CERTS,CONTESTS:CONTESTS,NEWS:NEWS,AWARDS:AWARDS,RESEARCH:RESEARCH}));
-    out.innerHTML=matchResult(window.PortfolioChat.matchRole(idx,t));
-    track('match-check','Role matcher check');
+    var my=++seq, ctl=window.AbortController?new AbortController():null, timer;
+    go_.disabled=true; out.innerHTML='<p class="muted" role="status">Reading the role and checking it against the portfolio…</p>';
+    var done=function(r,tag){ if(my!==seq) return; clearTimeout(timer); go_.disabled=false; out.innerHTML=matchResult(r); track('match-check','Role matcher '+tag); };
+    var fallback=function(){ done(local(t),'local') };
+    timer=setTimeout(function(){ if(ctl) ctl.abort(); },28000);
+    fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t.slice(0,5000)}),signal:ctl?ctl.signal:undefined})
+      .then(function(r){ if(!r.ok) throw new Error('http'); return r.json() })
+      .then(function(j){ if(!j||!j.match||!j.match.reqs||!j.match.reqs.length) throw new Error('shape'); done(j.match,'ai') })
+      .catch(fallback);
   }
-  document.getElementById('jd-go').addEventListener('click',go);
+  go_.addEventListener('click',go);
   document.getElementById('jd-ex').addEventListener('click',function(){ta.value=window.PortfolioChat.MATCH_EXAMPLE; go()});
-  document.getElementById('jd-clear').addEventListener('click',function(){ta.value=''; out.innerHTML='<p class="muted">Results appear here.</p>'; ta.focus()});
+  document.getElementById('jd-clear').addEventListener('click',function(){seq++; go_.disabled=false; ta.value=''; out.innerHTML='<p class="muted">Results appear here.</p>'; ta.focus()});
 }
 
 /* ---------- router ---------- */

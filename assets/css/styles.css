@@ -585,3 +585,5 @@ body[data-page="record"] footer.site,body[data-page="education"] footer.site{mar
 .match-banner:hover{border-color:var(--ink)}
 @media(max-width:900px){.match{grid-template-columns:1fr}}
 @media(max-width:420px){.m-list li{grid-template-columns:1fr; gap:6px}.match-in,.match-out{padding:18px}.match-banner{padding:20px}}
+.m-ev{margin-top:4px}.m-tag{font-size:11px; padding:2px 8px; border:1px solid var(--line); border-radius:999px; margin-left:6px; color:var(--muted)}
+.match-in .btn[disabled]{opacity:.6; cursor:wait}

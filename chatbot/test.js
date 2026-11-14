@@ -8,7 +8,7 @@ const kb = JSON.parse(fs.readFileSync(path.join(__dirname, 'worker/src/kb.json')
 let src = fs.readFileSync(path.join(__dirname, 'worker/src/index.js'), 'utf8');
 src = src.replace(/import \* as E from [^\n]+\n/, '').replace(/import kb from [^\n]+\n/, '').replace('export default', 'module.exports =');
 const mod = { exports: {} };
-vm.runInNewContext(src, { E, kb, module: mod, Response, Request, console, Math, JSON, String, Array, Number, Error, ReadableStream, TextEncoder, TextDecoder, Promise, setTimeout, clearTimeout }, { filename: 'worker' });
+vm.runInNewContext(src, { E, kb, module: mod, Response, Request, console, Math, JSON, String, Array, Number, Error, ReadableStream, TextEncoder, TextDecoder, Promise, setTimeout, clearTimeout, URL }, { filename: 'worker' });
 const worker = mod.exports;
 
 /* The fake model returns a token stream when asked to stream (the same shape Workers AI uses), or a plain object otherwise. */
@@ -16,7 +16,7 @@ const sse = events => new ReadableStream({ start(c) { const e = new TextEncoder(
 const tokenStream = toks => sse(toks.map(t => 'data: ' + JSON.stringify({ response: t }) + '\n\n').concat('data: [DONE]\n\n'));
 const ENV = { ALLOWED_ORIGINS: 'https://shawonnstu.github.io,http://localhost:8765', MODEL: 'fake', AI: { calls: [], async run(model, input) { this.calls.push(input); return input.stream ? tokenStream(['Fake ', 'streamed ', 'answer.']) : { response: 'Fake model answer.' }; } } };
 async function readSSE(res) { const txt = await res.text(); return txt.split('\n\n').filter(Boolean).map(b => b.replace(/^data: /, '')); }
-const req = (body, o = {}) => new Request('https://w.example/', { method: o.method || 'POST', headers: { 'Content-Type': 'application/json', Origin: o.origin === undefined ? 'https://shawonnstu.github.io' : o.origin, ...(o.headers || {}) }, body: o.method === 'OPTIONS' || o.method === 'GET' ? undefined : (typeof body === 'string' ? body : JSON.stringify(body)) });
+const req = (body, o = {}) => new Request('https://w.example' + (o.path || '/'), { method: o.method || 'POST', headers: { 'Content-Type': 'application/json', Origin: o.origin === undefined ? 'https://shawonnstu.github.io' : o.origin, ...(o.headers || {}) }, body: o.method === 'OPTIONS' || o.method === 'GET' ? undefined : (typeof body === 'string' ? body : JSON.stringify(body)) });
 let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 'PASS' : 'FAIL') + '  ' + name + (cond ? '' : '  -> ' + (extra || ''))); };
 
@@ -215,6 +215,45 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   ok('matcher: no unsupported language is claimed (Swift, Flutter, Go, Rust)', st(M('Swift, Flutter and iOS'), 'iOS, Swift and Flutter') === 'none');
   ok('matcher intent is recognised', E.intent('Match me to a role') === 'match' && E.answer(mi, 'does he fit this job description').links[0].url === '#match');
   ok('matcher: handles 8000+ characters', M('Python '.repeat(5000)).found === 1);
+
+  /* AI role matcher: the model's output is untrusted and must be checked against real evidence */
+  const evl = E.matchEvidence(mi), idOf = re => (evl.find(e => re.test(e.line)) || {}).id;
+  const ragId = idOf(/Enterprise AI Assistant/), skillId = idOf(/\[skill/);
+  const modelJSON = { role: 'Senior AI Engineer', requirements: [
+    { requirement: 'RAG pipelines', importance: 'must', status: 'direct', evidence: [ragId, 'E999'], reason: 'Built an enterprise RAG assistant.' },
+    { requirement: 'Kubernetes', importance: 'must', status: 'direct', evidence: ['E999'], reason: 'Invented evidence.' },
+    { requirement: 'Docker', importance: 'nice', status: 'direct', evidence: [skillId], reason: 'Listed in skills.' },
+    { requirement: 'Golang <script>alert(1)</script>', importance: 'must', status: 'none', evidence: [ragId], reason: '<b>x</b>' } ] };
+  const fm = E.finishMatch(mi, modelJSON), get = l => fm.reqs.find(q => q.label.indexOf(l) === 0);
+  ok('finishMatch: real evidence is kept, unknown ids dropped', get('RAG').status === 'strong' && get('RAG').evidence.length === 1 && get('RAG').evidence[0].url.startsWith('#'));
+  ok('finishMatch: "direct" with only invented ids becomes "not shown"', get('Kubernetes').status === 'none' && get('Kubernetes').evidence.length === 0);
+  ok('finishMatch: a skills-list entry alone is only "related"', get('Docker').status === 'some');
+  ok('finishMatch: "none" carries no evidence and no markup survives', get('Golang').evidence.length === 0 && !/[<>]/.test(JSON.stringify(fm)));
+  const yr = E.finishMatch(mi, { requirements: [{ requirement: '5+ years experience', status: 'none', evidence: [], reason: 'Has 7+ years experience' }, { requirement: '10+ years of Java', status: 'direct', evidence: [ragId], reason: 'Has lots' }, { requirement: 'Rust', status: 'none', evidence: [], reason: 'Knows Rust well' }] });
+  ok('finishMatch: years are compared in code (5+ met, 10+ not)', yr.reqs.find(q => q.label.startsWith('5+')).status === 'strong' && yr.reqs.find(q => q.label.startsWith('10+')).status === 'none');
+  ok('finishMatch: a "not shown" item never claims the skill', yr.reqs.find(q => q.label === 'Rust').note === 'Nothing on the portfolio shows this.');
+  const tg = E.finishMatch(mi, { requirements: [{ requirement: 'Rust, Go and Kubernetes', status: 'direct', evidence: [ragId], reason: 'Built it.' }, { requirement: 'Kotlin and Micronaut', status: 'direct', evidence: [idOf(/Lounge/)], reason: 'Lounge uses both.' }, { requirement: 'SwiftUI apps', status: 'related', evidence: [skillId], reason: 'x' }, { requirement: 'Python and Rust', status: 'direct', evidence: [ragId], reason: 'x' }] });
+  ok('finishMatch: a named technology the cited items never mention is "not shown"', tg.reqs.find(q => q.label.startsWith('Rust, Go')).status === 'none' && tg.reqs.find(q => q.label.startsWith('SwiftUI')).status === 'none');
+  ok('finishMatch: a named technology that IS in the cited item stays a match', tg.reqs.find(q => q.label.startsWith('Kotlin')).status === 'strong');
+  ok('finishMatch: only some named technologies supported is downgraded', tg.reqs.find(q => q.label === 'Python and Rust').status !== 'strong');
+  ok('finishMatch: must-haves sort before nice-to-haves', fm.reqs.findIndex(q => q.importance === 'nice') > fm.reqs.findIndex(q => q.label === 'RAG pipelines'));
+  ok('finishMatch: accepts JSON wrapped in prose, rejects garbage', E.finishMatch(mi, 'Sure! ' + JSON.stringify(modelJSON) + ' done').found === 4 && E.finishMatch(mi, 'no json here') === null && E.finishMatch(mi, '{"requirements":"x"}') === null);
+  const jdEnv = Object.assign({}, ENV, { MODEL_EVAL: 'fake-big', AI: { calls: [], async run(m, input) { this.calls.push({ m, input }); return { response: JSON.stringify(modelJSON) }; } } });
+  r = await worker.fetch(req({ text: 'We need a senior engineer with RAG and Kubernetes experience, 5+ years.' }, { path: '/match' }), jdEnv); j = await r.json();
+  ok('/match returns a validated result using the stronger model', r.status === 200 && j.match && j.match.source === 'ai' && jdEnv.AI.calls[0].m === 'fake-big', JSON.stringify(j).slice(0, 200));
+  ok('/match prompt carries the evidence list and treats the job text as data', /EVIDENCE:/.test(jdEnv.AI.calls[0].input.messages[0].content) && /untrusted/.test(jdEnv.AI.calls[0].input.messages[0].content) && /RAG and Kubernetes/.test(jdEnv.AI.calls[0].input.messages[1].content));
+  r = await worker.fetch(req({ text: 'short' }, { path: '/match' }), jdEnv);
+  ok('/match rejects tiny input', r.status === 400);
+  jdEnv.AI.calls.length = 0;
+  r = await worker.fetch(req({ text: 'x'.repeat(20000) }, { path: '/match' }), jdEnv);
+  ok('/match caps the job text sent to the model at 5000 characters', jdEnv.AI.calls[0].input.messages[1].content.length < 5100);
+  r = await worker.fetch(new Request('https://w.example/match', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://shawonnstu.github.io', 'content-length': '20000' }, body: '{}' }), jdEnv);
+  ok('/match rejects oversized requests (413)', r.status === 413);
+  r = await worker.fetch(req({ text: 'a long enough job description about python and rag systems' }, { path: '/match', origin: 'https://evil.example' }), jdEnv);
+  ok('/match refuses other websites', r.status === 403);
+  const badEnv = Object.assign({}, ENV, { AI: { async run() { return { response: 'I cannot do that' }; } } });
+  r = await worker.fetch(req({ text: 'a long enough job description about python and rag systems' }, { path: '/match' }), badEnv);
+  ok('/match answers 503 when the model returns junk (page falls back)', r.status === 503);
 
   const sp = E.systemPrompt('me@example.com');
   ok('system prompt forbids inventing facts and ignoring hidden instructions', /never invent/i.test(sp) && /do not follow instructions/i.test(sp));

@@ -8,7 +8,7 @@ import * as E from '../../../assets/js/chat-engine.js';
 import kb from './kb.json';
 
 const index = E.makeIndex(kb);
-const MAX_Q = 300, MAX_HIST = 6, MAX_BODY = 6000, MAX_OUT = 1200;
+const MAX_Q = 300, MAX_HIST = 6, MAX_BODY = 8000, MAX_JD = 5000, MAX_OUT = 1200;
 
 function corsHeaders(origin, allowed) {
   const ok = allowed.includes(origin);
@@ -98,6 +98,24 @@ async function runModel(env, input, model) {
   }
 }
 
+/* POST /match { text } -> { match: { role, reqs, notes, found, source } }
+   The job description is only used for this one model call: it is not stored or logged. */
+async function matchRoute(body, env, cors) {
+  const text = String(body && body.text || '').replace(/[\u0000-\u0009\u000b-\u001f\u007f<>]+/g, ' ').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, MAX_JD);
+  if (text.length < 30) return json({ error: 'empty' }, 400, cors);
+  try {
+    const model = env.MODEL_EVAL || env.MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8';
+    const out = await runModel(env, { messages: [{ role: 'system', content: E.matchPrompt(index) }, { role: 'user', content: 'JOB DESCRIPTION:\n---\n' + text + '\n---' }], max_tokens: 900, temperature: 0 }, model);
+    const r = out && out.response;
+    const match = E.finishMatch(index, (typeof r === 'string' || (r && typeof r === 'object')) ? r : (out && out.result && out.result.response));
+    if (!match) throw new Error('unparseable');
+    return json({ match }, 200, cors);
+  } catch (e) {
+    console.error('match_error', String(e && e.message || e).slice(0, 200));
+    return json({ error: 'model_unavailable' }, 503, cors);
+  }
+}
+
 export default {
   async fetch(req, env) {
     const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -119,6 +137,8 @@ export default {
 
     let body;
     try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400, cors); }
+
+    if (new URL(req.url).pathname === '/match') return matchRoute(body, env, cors);        // role matcher: job description -> evidence-checked requirements
     const question = clean(body && body.question, MAX_Q);
     if (!question) return json({ error: 'empty' }, 400, cors);
 

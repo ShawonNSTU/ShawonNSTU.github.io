@@ -43,7 +43,7 @@ The "Ask AI" panel answers questions about the portfolio. It works on its own wi
 
 ## Role matcher
 
-`#match` (assets/js/app.js `vMatch`, engine `matchRole` in assets/js/chat-engine.js). Paste a job description; each recognised requirement is reported as direct evidence (a project or job shows it), related (only in skills, research or student work) or not shown. It runs in the browser, sends nothing anywhere, never gives a percentage and never claims a skill missing from `data/content.js`. To teach it a new topic, add an entry to `TOPICS` and a test in `chatbot/test.js`.
+`#match` (view in assets/js/app.js, prompt and validator in assets/js/chat-engine.js: `matchPrompt`, `finishMatch`; Worker route `POST /match`). The 70B model reads a pasted job description and judges each requirement against a numbered evidence list built from `data/content.js`. It can only cite evidence ids; `finishMatch` drops unknown ids, forces "not shown" when nothing real is cited, and never lets a skills-list entry count as "direct". Only the text of the one request is sent to the model; the Worker neither stores nor logs it. If the model is unavailable the page falls back to `matchRole`, the older keyword matcher that runs in the browser. One match costs roughly 200 neurons of the 10,000 free per day. Tests: `node chatbot/test.js`.
 
 ## Copyright and copying
 
