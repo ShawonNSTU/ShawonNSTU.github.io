@@ -212,7 +212,7 @@ function vMatch(){
     '<div class="match-in"><label for="jd" class="mono muted">Job description or requirements</label>'+
     '<textarea id="jd" rows="12" maxlength="5000" placeholder="Paste the role here…" spellcheck="false"></textarea>'+
     '<div class="actions"><button class="btn dark" type="button" id="jd-go">Check the match'+arrow+'</button><button class="btn" type="button" id="jd-ex">Try an example</button><button class="btn" type="button" id="jd-clear">Clear</button></div>'+
-    '<p class="muted mono" style="font-size:12px; margin-top:14px">When you press Check, the text is sent to an AI model (open model on Cloudflare) to read it. This site does not store it. Do not paste anything confidential.</p></div>'+
+    '<p class="muted mono" style="font-size:12px; margin-top:14px">What you paste is analysed on a server to produce the result and is not stored by this site. Please do not paste anything confidential.</p></div>'+
     '<div class="match-out" id="jd-out" aria-live="polite"><p class="muted">Results appear here.</p></div>'+
   '</div></section></div>';
 }
