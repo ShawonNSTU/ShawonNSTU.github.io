@@ -134,6 +134,7 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   await worker.fetch(req({ question: 'Tell me about the PQM Agent' }), big);
   ok('MODEL_EVAL is used only for assessment questions', big.AI.calls[0] === 'strong-model' && big.AI.calls[1] === 'fake', big.AI.calls.join(','));
   const sp7 = E.systemPrompt('x@y.z', 'academic');
+  ok('assessment prompt asks for one "- " point per line', /one point per line/.test(sp7));
   ok('assessment prompt demands exact numbers and no combined claims', /exactly as written/.test(sp7) && /do not combine facts/i.test(sp7) && /never replace them with vague words/.test(sp7));
 
   const lim = { ...ENV, RATE: { async limit() { return { success: false }; } } };

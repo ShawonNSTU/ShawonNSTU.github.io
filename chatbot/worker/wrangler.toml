@@ -17,6 +17,9 @@ binding = "AI"
 ALLOWED_ORIGINS = "https://shawonnstu.github.io,http://localhost:8765,http://localhost:8000"
 # An open model hosted by Cloudflare. If this one is retired, pick another from the Workers AI catalogue.
 MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8"
+# A stronger model, used only for "why hire / fund / admit him" questions (about 60 neurons each of the 10,000 free per day).
+# It was faster and far more consistent than the 8B model in testing. Remove this line to use the 8B model everywhere.
+MODEL_EVAL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 
 # Optional rate limiting per visitor (30 questions per minute). Uncomment after `wrangler` supports it on your plan.
 # [[unsafe.bindings]]

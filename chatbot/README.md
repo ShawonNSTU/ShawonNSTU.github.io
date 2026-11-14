@@ -21,7 +21,7 @@ Visitor ──▶ chat panel (assets/js/chat.js)
 
 ## Status
 
-The Worker is deployed at `https://portfolio-chat.shaon-kanti.workers.dev` (account subdomain `shaon-kanti`) and the site points at it (`CHAT_ENDPOINT` in `assets/js/chat.js`). Model: `@cf/meta/llama-3.1-8b-instruct-fp8`.
+The Worker is deployed at `https://portfolio-chat.shaon-kanti.workers.dev` (account subdomain `shaon-kanti`) and the site points at it (`CHAT_ENDPOINT` in `assets/js/chat.js`). Models: `@cf/meta/llama-3.1-8b-instruct-fp8` for normal questions, `@cf/meta/llama-3.3-70b-instruct-fp8-fast` for assessments.
 
 To redeploy after changing `data/content.js` or the Worker: `cd chatbot/worker && npm run deploy`.
 
@@ -36,7 +36,7 @@ Keyword search is the wrong tool for assessment questions: it returns whatever s
 3. The prompt tells the model to pick the strongest points for the visitor's purpose, give exactly the number asked for, quote numbers exactly, never combine facts into new claims, and be honest that the portfolio lists patents and invention proposals but no peer-reviewed publications.
 4. The Worker strips filler openers ("Based on the portfolio, ...") from the answer.
 
-The fact sheet quotes headline numbers (500+, 30%, 40+, 60+, 12 ...). `node chatbot/test.js` fails if any of them stops matching the site, so they cannot drift silently. To use a stronger model only for these questions, set `MODEL_EVAL` in `wrangler.toml` (see the Workers AI catalogue for cost).
+The fact sheet quotes headline numbers (500+, 30%, 40+, 60+, 12 ...). `node chatbot/test.js` fails if any of them stops matching the site, so they cannot drift silently. These questions use a stronger model, `MODEL_EVAL` in `wrangler.toml` (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`). In testing it answered in under 2.5 s with the same strong answer every time, where the 8B model took 5-13 s and varied. Cost (Cloudflare's published prices): about 60 of the 10,000 free neurons per day for one assessment question, so roughly 170 a day. Past the free allowance requests fail, and the page falls back to the built-in answers. Nothing is charged on the Free plan. Remove the `MODEL_EVAL` line to use the 8B model for everything.
 
 Quality check against the real model: `node chatbot/eval.js` (9 questions with must-mention and must-not-mention rules). It needs the network and uses a little of the free allowance. Model answers vary a little from call to call, so run it twice before trusting a single failure.
 
@@ -92,7 +92,7 @@ Models get retired. The first model I used, `llama-3.1-8b-instruct`, was depreca
 ## Tests
 
 ```bash
-node chatbot/test.js     # 101 checks: Worker (origins, limits, injection, streaming, fallbacks) and every suggested question
+node chatbot/test.js     # 102 checks: Worker (origins, limits, injection, streaming, fallbacks) and every suggested question
 ```
 
 ## Files

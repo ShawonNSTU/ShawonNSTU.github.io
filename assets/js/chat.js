@@ -49,7 +49,8 @@
   }
   function block(text, into) {
     var ul = null;
-    String(text).split('\n').forEach(function (ln) {
+    text = String(text).replace(/([.!?:])[ \t]+[-\u2022][ \t]+(?=[A-Z0-9])/g, '$1\n- ');       // small models sometimes put bullets inline: "... done. - Next ..."
+    text.split('\n').forEach(function (ln) {
       var m = ln.match(/^\s*(?:[-*•])\s+(.*)$/);
       if (m) { if (!ul) { ul = h('ul', { class: 'chat-items' }); into.appendChild(ul); } var li = h('li'); inline(m[1], li); ul.appendChild(li); return; }
       ul = null;

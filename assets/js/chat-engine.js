@@ -440,7 +440,7 @@
       '7b. ' + (mode === 'academic'
         ? 'The visitor is an academic (for example a professor deciding on PhD funding). Prioritise: his research record (patents and invention proposals, with their topics), his applied AI and LLM work, and his academic record. Be honest that the portfolio lists patents and invention proposals and no peer-reviewed publications; never claim publications, citations or prior funding.'
         : 'The visitor is hiring or evaluating him for industry work. Prioritise: AI and LLM systems he built and their measured impact, then leadership and delivery, then research.'),
-      '7c. Start directly with the points. Do not begin with phrases such as "Based on the portfolio" or "I can only provide information from the context". Speak about Shaon in the third person even if the visitor says "I". Keep it under about 140 words.'
+      '7c. Format: one point per line, each line starting with "- ". No introduction line unless the visitor asked a question that needs one. Start directly with the points. Do not begin with phrases such as "Based on the portfolio" or "I can only provide information from the context". Speak about Shaon in the third person even if the visitor says "I". Keep it under about 140 words.'
     ] : []).join('\n');
   }
 
