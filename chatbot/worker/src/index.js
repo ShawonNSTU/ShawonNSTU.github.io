@@ -105,9 +105,13 @@ async function matchRoute(body, env, cors) {
   if (text.length < 30) return json({ error: 'empty' }, 400, cors);
   try {
     const model = env.MODEL_EVAL || env.MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8';
-    const out = await runModel(env, { messages: [{ role: 'system', content: E.matchPrompt(index) }, { role: 'user', content: 'JOB DESCRIPTION:\n---\n' + text + '\n---' }], max_tokens: 900, temperature: 0 }, model);
-    const r = out && out.response;
-    const match = E.finishMatch(index, (typeof r === 'string' || (r && typeof r === 'object')) ? r : (out && out.result && out.result.response));
+    const input = { messages: [{ role: 'system', content: E.matchPrompt(index) }, { role: 'user', content: 'JOB DESCRIPTION:\n---\n' + text + '\n---' }], max_tokens: 1100, temperature: 0 };
+    let match = null;
+    for (let attempt = 0; attempt < 2 && !match; attempt++) {                       // one retry if the model's JSON is malformed
+      const out = await runModel(env, input, model);
+      const r = out && out.response;
+      match = E.finishMatch(index, (typeof r === 'string' || (r && typeof r === 'object')) ? r : (out && out.result && out.result.response));
+    }
     if (!match) throw new Error('unparseable');
     return json({ match }, 200, cors);
   } catch (e) {

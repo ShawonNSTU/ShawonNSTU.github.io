@@ -251,6 +251,9 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   ok('/match rejects oversized requests (413)', r.status === 413);
   r = await worker.fetch(req({ text: 'a long enough job description about python and rag systems' }, { path: '/match', origin: 'https://evil.example' }), jdEnv);
   ok('/match refuses other websites', r.status === 403);
+  let jsonTries = 0; const jsonEnv = Object.assign({}, ENV, { AI: { async run() { return { response: jsonTries++ === 0 ? '{"requirements": [' : JSON.stringify(modelJSON) }; } } });
+  r = await worker.fetch(req({ text: 'a long enough job description about python and rag systems' }, { path: '/match' }), jsonEnv);
+  ok('/match retries once when the model returns broken JSON', r.status === 200 && jsonTries === 2);
   const badEnv = Object.assign({}, ENV, { AI: { async run() { return { response: 'I cannot do that' }; } } });
   r = await worker.fetch(req({ text: 'a long enough job description about python and rag systems' }, { path: '/match' }), badEnv);
   ok('/match answers 503 when the model returns junk (page falls back)', r.status === 503);
