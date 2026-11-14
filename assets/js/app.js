@@ -231,7 +231,7 @@ function matchResult(r){
   return (r.role?'<p class="mono muted" style="font-size:12px">'+esc(r.role)+'</p>':'')+'<h2 class="m-h">'+head+'</h2>'+
     '<p class="muted">'+n.some+' related, '+n.none+' not shown. Each item links to the page that backs it up.</p>'+
     '<ul class="m-list">'+rows+notes+'</ul>'+
-    '<p class="muted mono" style="font-size:12px; margin-top:16px">'+(r.source==='ai'?'Read by an AI model, then checked: every link points to real portfolio content, and an item with no evidence is never shown as a match. Verify anything important in the linked pages.':'Matched by keywords in your browser (the AI model was unavailable). It only knows a fixed list of topics, so treat it as a rough guide.')+'</p>'+
+    '<p class="muted mono" style="font-size:12px; margin-top:16px">'+(r.source==='ai'?'Read by an AI model, then checked: every link points to real portfolio content, and an item with no evidence is never shown as a match. Verify anything important in the linked pages.':'Token limit reached for now. Showing a basic match instead.')+'</p>'+
     '<div class="actions" style="margin-top:22px"><a class="btn dark" href="mailto:'+EMAIL+'?subject='+encodeURIComponent('Role for Shaon Kanti Dhar')+'">Email Shaon about this role'+arrow+'</a><a class="btn" href="#cv">View CV</a></div>';
 }
 function wireMatch(){
