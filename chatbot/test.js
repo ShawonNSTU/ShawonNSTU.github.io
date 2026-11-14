@@ -68,6 +68,11 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   ev = await readSSE(r);
   ok('malformed events are skipped and control characters stripped', ev.slice(1, -1).map(x => JSON.parse(x).t).join('') === 'ok text', ev.join('|'));
 
+  const numeric = { ...ENV, AI: { async run() { return sse(['used by', ' ', 40, '+ QA engineers in', ' ', 2025].map(x => 'data: ' + JSON.stringify({ response: x }) + '\n\n').concat('data: [DONE]\n\n')); } } };
+  r = await worker.fetch(req({ question: 'What awards has Shaon won?', stream: true }), numeric);
+  ev = await readSSE(r);
+  ok('number-only tokens ("40", "2025") are kept, not dropped', ev.slice(1, -1).map(x => JSON.parse(x).t).join('') === 'used by 40+ QA engineers in 2025', ev.join('|'));
+
   const broken = { ...ENV, AI: { async run() { let n = 0; return new ReadableStream({ pull(c) { if (n++ === 0) { c.enqueue(new TextEncoder().encode('data: ' + JSON.stringify({ response: 'part' }) + '\n\n')); return; } throw new Error('boom'); } }); } } };
   r = await worker.fetch(req({ question: 'What awards has Shaon won?', stream: true }), broken);
   ev = await readSSE(r);

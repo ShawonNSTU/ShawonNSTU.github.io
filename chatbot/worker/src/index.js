@@ -55,7 +55,10 @@ function toClientStream(aiStream, sources) {
               const v = ln.slice(5).trim();
               if (v === '[DONE]') { stop = true; break; }
               let t = '';
-              try { const j = JSON.parse(v); t = typeof j.response === 'string' ? j.response : ''; } catch (e) { /* ignore a malformed event */ }
+              try {
+                const j = JSON.parse(v), r = j.response;
+                t = (typeof r === 'string' || typeof r === 'number') ? String(r) : '';      // some models send a number-only token ("40", "2025") as a JSON number
+              } catch (e) { /* ignore a malformed event */ }
               t = t.replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '');
               if (!t) continue;
               if (!headDone) { head += t; if (head.length >= 80) flushHead(); if (stop) break; continue; }
