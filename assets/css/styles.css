@@ -1,4 +1,6 @@
+/* Copyright (c) 2026 Shaon Kanti Dhar. All rights reserved. Not licensed for reuse, copying or derivative sites. Build ID SKD-74ed513e2a6c-2026. */
 :root{
+  --pf-build:'SKD-74ed513e2a6c-2026';
   /* Layout idea: an architect's drawing set for a building full of connected devices. Pages are sheets (A-01, A-02...), the hero is a live floor plan, projects are rooms. */
   --bg:#F1F3F5;
   --card:#FFFFFF;
@@ -565,3 +567,21 @@ body[data-page="record"] footer.site,body[data-page="education"] footer.site{mar
   .tools{gap:4px}
   .tools .icon-btn,.tools .chat-open{width:36px; height:36px}
 }
+
+/* role matcher */
+.match{display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start}
+.match-in,.match-out{background:var(--card); border:1px solid var(--line); border-radius:24px; padding:24px; min-width:0}
+.match-in textarea{width:100%; margin-top:10px; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--bg); color:var(--ink); font:400 15px/1.55 var(--sans); resize:vertical; min-height:220px}
+.match-in .actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
+.m-h{font:500 clamp(24px,3vw,32px)/1.2 var(--serif); margin-bottom:6px}
+.m-list{list-style:none; margin:18px 0 0; padding:0; display:grid; gap:2px}
+.m-list li{display:grid; grid-template-columns:132px 1fr; gap:14px; padding:14px 0; border-top:1px solid var(--line)}
+.m-list a{color:var(--accent)}
+.m-b{font-size:12px; letter-spacing:.04em; white-space:nowrap}
+.m-strong .m-b{color:var(--accent)} .m-some .m-b{color:var(--ink)} .m-none .m-b{color:var(--muted)}
+.match-banner{display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; margin-top:28px; padding:24px 28px; border:1px solid var(--line); border-radius:24px; background:var(--card); text-decoration:none}
+.match-banner>div{display:grid; gap:6px; max-width:60ch}
+.match-banner b{font:500 26px/1.2 var(--serif)}
+.match-banner:hover{border-color:var(--ink)}
+@media(max-width:900px){.match{grid-template-columns:1fr}}
+@media(max-width:420px){.m-list li{grid-template-columns:1fr; gap:6px}.match-in,.match-out{padding:18px}.match-banner{padding:20px}}

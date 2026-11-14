@@ -1,0 +1,67 @@
+# Search engines are welcome. AI-training and bulk-scraping crawlers are not.
+# This file is a request that well-behaved crawlers honour; it cannot enforce anything.
+
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Perplexity-User
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: omgili
+Disallow: /
+
+User-agent: Timpibot
+Disallow: /
+
+Sitemap: https://shawonnstu.github.io/sitemap.xml

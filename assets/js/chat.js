@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Shaon Kanti Dhar. All rights reserved. Not licensed for reuse, copying or derivative sites. Build ID SKD-74ed513e2a6c-2026. */
 /* Portfolio chat widget.
    Answers questions about this portfolio. It works on its own with built-in answers (no AI model),
    and uses an open language model too once CHAT_ENDPOINT points at the deployed Worker

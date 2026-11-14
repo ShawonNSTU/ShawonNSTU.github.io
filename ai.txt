@@ -1,0 +1,5 @@
+# ai.txt: Shaon Kanti Dhar's portfolio
+User-Agent: *
+Disallow: *
+# No text, code, images or data from this site may be used to train or fine-tune AI models,
+# or copied to build derivative sites. Contact shaonkantidhar07@gmail.com for permission.

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Shaon Kanti Dhar. All rights reserved. Not licensed for reuse, copying or derivative sites. Build ID SKD-74ed513e2a6c-2026. */
 /* Portfolio chat engine.
    One file, two homes: the browser (window.PortfolioChat) and the Cloudflare Worker (import).
    It turns the portfolio data (data/content.js) into a small searchable knowledge base,
@@ -247,7 +248,7 @@
   }
 
   /* "why should I hire / fund / admit him", "what are his strengths" ... questions that ask for a judgement, not a lookup */
-  var EVALUATE = /\b(strong(?:est)?|strengths?|capabilit\w*|why\b.{0,50}\b(hire|fund|admit|accept|choose|select|recruit|sponsor|supervise|take|consider|interview)|\b(phd|ph\.d|doctoral|doctorate|supervis\w*|advis(?:or|er)|admissions?|funding|fund|scholarships?|fellowships?|professor|hiring manager|recruiter)\b|suitable|good fit|fit for|stand out|unique|impress\w*|\bbest\b|most (?:important|notable|significant|valuable)|highlights?|pitch|recommend\w*|potential|promising|qualif\w+|what makes|selling points?|worth hiring)/i;
+  var EVALUATE = /\b(strong(?:est)?|strengths?|capabilit\w*|why\b.{0,50}\b(hire|fund|admit|accept|choose|select|recruit|sponsor|supervise|take|consider|interview)|\b(phd|ph\.d|doctoral|doctorate|supervis\w*|advis(?:or|er)|admissions?|funding|fund|scholarships?|fellowships?|professor|hiring manager|recruiter)\b|suitable|good fit|fit for|stand out|unique|impress\w*|\bbest\b|most (?:important|notable|significant|valuable)|highlights?|pitch|recommend\w*|potential|promising|qualif\w+|what makes|selling points?|worth hiring|bring to|brings?\b.{0,30}\b(team|company|startup|table|lab)|compar\w+|surpris\w+|interesting|in a nutshell|overall|sum(?:mary|marise|marize) of (?:his )?(?:strengths|profile)|tell me something)/i;
   var ACADEMIC = /\b(research|researcher|professors?|phd|ph\.d|doctoral|doctorate|supervis\w*|advis(?:or|er)|admissions?|admit|fund\w*|scholarships?|fellowships?|research group|lab|grad(?:uate)? (?:school|program\w*|student)|masters?|msc|postdoc|academic)\b/i;
   function audience(q) { return ACADEMIC.test(String(q || '')) ? 'academic' : 'industry'; }
   function orderedHighlights(index, q) {
@@ -261,6 +262,7 @@
     var s = String(q || '').toLowerCase().trim();
     if (!s) return null;
     if (/\b(salary|pay|income|age|birth|born|dob|date of birth|address|phone|mobile|whatsapp|parents?|mother|father|family|religion|passport|nid|id number|roll number|marital|married|wife|girlfriend|visa)\b/.test(s)) return 'private';
+    if (/\b(match (me|him|his|this)|job description|job posting|job ad|role fit|fit (my|this|our) (role|job|position|team))\b/.test(s)) return 'match';
     if (/^(hi|hello|hey|hola|yo|good (morning|afternoon|evening)|assalamu|salam|greetings)\b/.test(s) && rawTokens(s).length <= 4) return 'greet';
     if (/\b(thanks|thank you|thx|cheers|great|awesome|cool|nice)\b/.test(s) && rawTokens(s).length <= 5) return 'thanks';
     if (/\b(contact|email|e-mail|reach|get in touch|in touch|linkedin|available for|connect)\b/.test(s)) return 'contact';
@@ -345,6 +347,7 @@
   function answer(index, query) {
     var it = intent(query), email = index.email;
     if (it === 'private') return { text: "I only share what's on this portfolio, and personal details like that aren't included. If you need something specific, you can email " + email + '.', links: [{ title: 'Contact', url: '#contact' }], source: 'local' };
+    if (it === 'match') return { text: 'Paste a job description or a list of requirements into the role matcher. It shows, requirement by requirement, what the portfolio backs up with evidence and what it does not. It runs in your browser and nothing you paste is sent anywhere.', links: [{ title: 'Open the role matcher', url: '#match' }], source: 'local' };
     if (it === 'greet') return { text: "Hi! I answer questions about Shaon's work, research and background, using only what's on this portfolio. What would you like to know?", suggestions: HELP_Q, source: 'local' };
     if (it === 'thanks') return { text: "You're welcome! Ask me anything else about Shaon's work, or email him at " + email + '.', source: 'local' };
     if (it === 'help') return { text: 'I can tell you about his projects, AI agent work, research and patents, awards, experience, skills and education. Try one of these:', suggestions: HELP_Q, source: 'local' };
@@ -401,6 +404,81 @@
     return { text: text.trim(), items: items2, links: links, source: 'local' };
   }
 
+  /* ---------------- role matcher: job description -> requirement-by-requirement evidence ----------------
+     Runs entirely in the browser. It only reports what the portfolio's own data supports:
+       strong = a project or job entry shows it   some = only listed in skills / research / student work   none = nothing found.
+     It never scores a "percent fit" and never claims a skill that is not in the data. */
+  var TOPICS = [
+    { label: 'LLMs and generative AI', jd: /\b(llms?|large language models?|generative ai|gen ?ai|gpt|openai|prompt engineering)\b/i, ev: /\bLLM|large language model/i },
+    { label: 'RAG and retrieval', jd: /\b(rag|retrieval|vector (?:db|database|search|store)s?|embeddings?|semantic search|pgvector)\b/i, ev: /\bRAG\b|retrieval|pgvector|hybrid search/i },
+    { label: 'AI agents and tool use', jd: /\b(agents?|agentic|langchain|langgraph|mcp|tool use|function calling)\b/i, ev: /\bagent|\bMCP\b|LangChain/i },
+    { label: 'Model fine-tuning and serving', jd: /\b(fine-?tun\w*|model training|mlops|vllm|model serving|inference)\b/i, ev: /fine-tun|vLLM/i },
+    { label: 'Machine learning and deep learning', jd: /\b(machine learning|deep learning|ml engineer|pytorch|tensorflow|neural networks?|scikit-?learn)\b/i, ev: /machine learning|deep learning|neural|pytorch|tensorflow|audio classification|speech recognition/i },
+    { label: 'Computer vision and imaging', jd: /\b(computer vision|image (?:processing|recognition)|opencv|imaging|video processing)\b/i, ev: /OpenCV|computational imaging|video processing|camera/i },
+    { label: 'Speech, audio and NLP', jd: /\b(speech|audio|voice|asr|nlp|natural language)\b/i, ev: /speech|audio|voice|\bNLP\b|language model/i, st: ['research'] },
+    { label: 'Python', jd: /\bpython\b/i, ev: /\bPython\b|FastAPI/ },
+    { label: 'Java and Spring', jd: /\b(java|spring(?: boot)?)\b/i, ev: /\bJava\b|Spring Boot/ },
+    { label: 'Kotlin and Micronaut', jd: /\b(kotlin|micronaut)\b/i, ev: /Kotlin|Micronaut/ },
+    { label: 'TypeScript and JavaScript', jd: /\b(typescript|javascript|node\.?js|ecmascript)\b/i, ev: /TypeScript|JavaScript|Next\.js/ },
+    { label: 'Front-end engineering', jd: /\b(front-?end|react(?:\.?js)?|vue(?:\.?js)?|next\.?js|angular|web ui)\b/i, ev: /Vue|React|Next\.js/ },
+    { label: 'Back-end and APIs', jd: /\b(back-?end|apis?|microservices?|rest(?:ful)?|server-side|grpc)\b/i, ev: /Spring Boot|FastAPI|Micronaut|[Mm]icroservice|REST/ },
+    { label: 'Databases', jd: /\b(sql|postgres(?:ql)?|mysql|mongodb|redis|nosql|databases?)\b/i, ev: /PostgreSQL|MySQL|MongoDB|Redis|Aurora/ },
+    { label: 'Cloud, containers and CI/CD', jd: /\b(aws|cloud|docker|containers?|ci\/cd|jenkins|devops|azure|gcp)\b/i, ev: /\bAWS\b|Docker|Jenkins/ },
+    { label: 'Kubernetes and infrastructure as code', jd: /\b(kubernetes|k8s|terraform|ansible|helm|infrastructure as code)\b/i, ev: /kubernetes|terraform|ansible/i },
+    { label: 'Data engineering and big data', jd: /\b(spark|hadoop|airflow|kafka|etl|data pipelines?|big data|data engineer\w*)\b/i, ev: /\bSpark\b|Hadoop|Airflow|Kafka|\bETL\b/ },
+    { label: 'IoT platforms', jd: /\b(iot|internet of things|smart ?home|embedded|smartthings)\b/i, ev: /\bIoT\b|SmartThings/ },
+    { label: 'Security and privacy', jd: /\b(security|privacy|authentication|oauth|encryption|cyber\w*|infosec)\b/i, ev: /security|authentication|OAuth|privacy/i, st: ['project', 'job', 'research'] },
+    { label: 'Bluetooth and wearables', jd: /\b(bluetooth|wearables?|earbuds?)\b/i, ev: /Bluetooth|wearable|earbud/i, st: ['research'] },
+    { label: 'Real-time systems and visualisation', jd: /\b(real-?time|dashboards?|visuali[sz]ation|charts?|three\.?js|3d|unity)\b/i, ev: /Three\.js|Chart\.js|Unity|visuali[sz]ation|\bSSE\b|real-time/i },
+    { label: 'Android and mobile', jd: /\b(android|mobile apps?|mobile development)\b/i, ev: /Android/ },
+    { label: 'iOS, Swift and Flutter', jd: /\b(ios|swift|flutter|react native)\b/i, ev: /\biOS\b|Swift|Flutter|React Native/ },
+    { label: 'Testing and QA automation', jd: /\b(test(?:ing)? automation|qa|quality assurance|sdet|test cases?|quality engineering)\b/i, ev: /test-case|QA\b|quality|[Tt]est automation/ },
+    { label: 'Technical leadership', jd: /\b(lead(?:er|ership)?|manage(?:r|ment)?|mentor\w*|team lead|people management)\b/i, ev: /Project Leader|Lead Engineer|leads 12|12 engineers/ },
+    { label: 'Research and patents', jd: /\b(research|patents?|inventions?|r&d)\b/i, ev: /patent|invention/i, st: ['research'] },
+    { label: 'Peer-reviewed publications', jd: /\b(publications?|peer-?reviewed|conference papers?|journal papers?|ieee|acm|published papers?)\b/i, ev: /peer-reviewed|journal paper|conference paper|published in/i, none: 'No peer-reviewed publications are listed. His research record is patents and invention proposals.' }
+  ];
+  var TYPE_RANK = { project: 0, job: 1, research: 2, award: 3, skill: 4, archive: 5, education: 6 };
+  var TYPE_WHY = { skill: 'listed in his skills', research: 'appears in his research', archive: 'appears in earlier student work', award: 'mentioned in an award', education: 'appears in his education' };
+  var NO_EVIDENCE = { profile: 1, contact: 1, cv: 1, timeline: 1, cert: 1 };
+
+  function chunkText(c) { return [c.title, c.sub, c.summary, (c.facts || []).join(' '), (c.bullets || []).join(' '), c.kw].join(' '); }
+
+  function matchRole(index, text) {
+    var jd = String(text || '').slice(0, 8000), out = { reqs: [], notes: [], found: 0 };
+    TOPICS.forEach(function (t) {
+      if (!t.jd.test(jd)) return;
+      var strongTypes = t.st || ['project', 'job'], hits = [];
+      index.docs.forEach(function (d) {
+        var c = d.chunk;
+        if (NO_EVIDENCE[c.type] || !(c.type in TYPE_RANK)) return;
+        if (t.ev.test(chunkText(c))) hits.push(c);
+      });
+      hits.sort(function (a, b) { return TYPE_RANK[a.type] - TYPE_RANK[b.type]; });
+      var strong = hits.some(function (c) { return strongTypes.indexOf(c.type) > -1; });
+      var seen = {}, ev = [];
+      hits.forEach(function (c) {
+        var title = c.title.split(' · ')[0], key = title + '|' + c.url;
+        if (seen[key] || ev.length >= 2) return;
+        if (strong && strongTypes.indexOf(c.type) < 0) return;
+        seen[key] = 1;
+        ev.push({ title: title, url: c.url, why: strongTypes.indexOf(c.type) > -1 ? '' : (TYPE_WHY[c.type] || '') });
+      });
+      out.reqs.push({ label: t.label, status: !hits.length ? 'none' : strong ? 'strong' : 'some', evidence: ev, note: !hits.length ? (t.none || '') : '' });
+    });
+    var order = { strong: 0, some: 1, none: 2 };
+    out.reqs.sort(function (a, b) { return order[a.status] - order[b.status]; });
+    out.found = out.reqs.length;
+
+    var yrs = 0, m, re = /(\d{1,2})\s*\+?\s*(?:-\s*\d{1,2}\s*)?(?:years?|yrs?)\b/gi;
+    while ((m = re.exec(jd))) { var n = +m[1]; if (n <= 25 && n > yrs) yrs = n; }
+    if (yrs) out.notes.push({ label: 'Experience', status: yrs <= 7 ? 'strong' : 'none', text: yrs <= 7 ? 'The role mentions ' + yrs + '+ years. Shaon has 7+ years of professional experience (since October 2019).' : 'The role mentions ' + yrs + '+ years. Shaon has 7+ years, which is below that.' });
+    if (/\b(ph\.?d|doctorate|doctoral)\b/i.test(jd)) out.notes.push({ label: 'Education', status: 'none', text: 'The role mentions a PhD. Shaon does not hold one; his degree is a B.Sc. in Information and Communication Engineering (CGPA 3.51/4.00).' });
+    else if (/\b(master'?s|m\.?sc|msc|graduate degree)\b/i.test(jd)) out.notes.push({ label: 'Education', status: 'none', text: "The role mentions a master's degree. Shaon holds a B.Sc. in Information and Communication Engineering (CGPA 3.51/4.00), not a master's." });
+    else if (/\b(bachelor'?s?|b\.?sc|bsc|degree)\b/i.test(jd)) out.notes.push({ label: 'Education', status: 'strong', text: 'The role mentions a degree. Shaon holds a B.Sc. in Information and Communication Engineering (CGPA 3.51/4.00).' });
+    return out;
+  }
+  var MATCH_EXAMPLE = 'Senior AI Engineer\nWe are looking for an engineer with 5+ years of experience to build LLM-powered products.\n- Design RAG pipelines and AI agents in Python\n- Build back-end services and REST APIs; experience with PostgreSQL and AWS\n- Lead and mentor a small team\n- Nice to have: Kubernetes, publications in machine learning\n- Bachelor\'s degree in a related field';
+
   /* ---------------- helpers for the Worker ---------------- */
   function context(index, query, k) {
     var hits = search(index, query, k || 5);
@@ -440,6 +518,7 @@
       '7b. ' + (mode === 'academic'
         ? 'The visitor is an academic (for example a professor deciding on PhD funding). Prioritise: his research record (patents and invention proposals, with their topics), his applied AI and LLM work, and his academic record. Be honest that the portfolio lists patents and invention proposals and no peer-reviewed publications; never claim publications, citations or prior funding.'
         : 'The visitor is hiring or evaluating him for industry work. Prioritise: AI and LLM systems he built and their measured impact, then leadership and delivery, then research.'),
+      '7e. When comparing or contrasting two areas, list what the context says about each separately. Never state that one area caused, led to or enabled the other unless the context says so.',
       '7c. Format: one point per line, each line starting with "- ". No introduction line unless the visitor asked a question that needs one. Start directly with the points. Do not begin with phrases such as "Based on the portfolio" or "I can only provide information from the context". Speak about Shaon in the third person even if the visitor says "I". Keep it under about 140 words.'
     ] : []).join('\n');
   }
@@ -447,6 +526,6 @@
   return {
     SITE: SITE, LINKEDIN: LINKEDIN, PROFILE: PROFILE, HELP_Q: HELP_Q,
     buildKB: buildKB, makeIndex: makeIndex, search: search, intent: intent, answer: answer,
-    context: context, evalContext: evalContext, audience: audience, systemPrompt: systemPrompt, tokens: tokens, clip: clip
+    context: context, evalContext: evalContext, matchRole: matchRole, MATCH_EXAMPLE: MATCH_EXAMPLE, audience: audience, systemPrompt: systemPrompt, tokens: tokens, clip: clip
   };
 });

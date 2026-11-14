@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Shaon Kanti Dhar. All rights reserved. Not licensed for reuse, copying or derivative sites. Build ID SKD-74ed513e2a6c-2026. */
 /*
   CONTENT FILE: edit this to change what the portfolio says.
   - PROJECTS: case studies (home floor plan uses the first five)

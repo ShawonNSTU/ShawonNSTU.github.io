@@ -13,16 +13,22 @@ const cases = [
   { q: 'What are his top 3 strengths for a hiring manager?', must: [/AI|LLM|RAG|lead/i], not: [JUNK], bullets: 3 },
   { q: 'what is the most impressive thing he has built?', must: [/500\+|30%|40\+|60\+|Starbucks|RAG|agent/i], not: [JUNK, /\bthe best\b|greatest|unmatched/i] },
   { q: 'Does he have peer-reviewed publications?', must: [/patent|invention|not list|no peer|do not|don't|doesn't|not mention|couldn't find/i], not: [/published in|IEEE|ACM|journal of/i] },
+  { q: 'What would he bring to a startup?', must: [/AI|LLM|RAG|lead|built/i], not: [JUNK] },
+  { q: 'Compare his research and industry work', must: [/patent|invention|research/i, /RAG|agent|AI|LLM|lead/i], not: [JUNK, /because of his research|thanks to his research|led to|enabled/i] },
+  { q: 'Tell me something surprising about him', must: [/./], not: [JUNK] },
   { q: 'Is he the best engineer in Bangladesh?', must: [/./], not: [/\bis the best\b|number one|#1/i] },
 ];
 (async () => {
   let bad = 0;
   for (const c of cases) {
     let out;
-    try {
-      const r = await fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: ORIGIN }, body: JSON.stringify({ question: c.q }), signal: AbortSignal.timeout(40000) });
-      out = r.ok ? (await r.json()).answer || '' : 'HTTP ' + r.status;
-    } catch (e) { out = 'ERROR ' + e.message; }
+    for (let attempt = 0; attempt < 2; attempt++) {       // the free model occasionally hangs; the site falls back, so retry once here
+      try {
+        const r = await fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: ORIGIN }, body: JSON.stringify({ question: c.q }), signal: AbortSignal.timeout(40000) });
+        out = r.ok ? (await r.json()).answer || '' : 'HTTP ' + r.status;
+      } catch (e) { out = 'ERROR ' + e.message; }
+      if (!/^(HTTP 5|ERROR)/.test(out)) break;
+    }
     const fails = [];
     c.must.forEach(re => { if (!re.test(out)) fails.push('missing ' + re); });
     c.not.forEach(re => { if (re.test(out)) fails.push('contains ' + re + ' -> "' + (out.match(re) || [''])[0] + '"'); });

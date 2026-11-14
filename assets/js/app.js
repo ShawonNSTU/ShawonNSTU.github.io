@@ -1,5 +1,7 @@
+/* Copyright (c) 2026 Shaon Kanti Dhar. All rights reserved. Not licensed for reuse, copying or derivative sites. Build ID SKD-74ed513e2a6c-2026. */
 
 /* ---------- helpers ---------- */
+var PF_BUILD='SKD-74ed513e2a6c-2026';
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function chips(a,hi){return '<div class="chips">'+a.map(function(c,i){return '<span class="chip'+(i<(hi||0)?' a':'')+'">'+esc(c)+'</span>'}).join('')+'</div>'}
 function ext(t,u){return '<a class="more" href="'+u+'">'+esc(t)+'<svg aria-hidden="true"><use href="#arr"/></svg></a>'}
@@ -49,6 +51,7 @@ function vHome(){
   '</section>'+
   '<div class="tags4 mono"><div><span class="muted">01</span><b>Secured IoT platforms</b></div><div><span class="muted">02</span><b>AI agents &amp; LLMs</b></div><div><span class="muted">03</span><b>Research &amp; inventions</b></div><div><span class="muted">04</span><b>Engineering leadership</b></div></div>'+
   '</div>'+
+  '<div class="wrap"><a class="match-banner" href="#match"><div><span class="eyebrow">Hiring or reviewing?</span><b>Match me to your role</b><span class="muted">Paste a job description and see what the portfolio backs up, requirement by requirement.</span></div><span class="btn">Open the role matcher'+arrow+'</span></a></div>'+
   '<section class="sec"><div class="wrap"><div class="sec-h"><div><span class="eyebrow">Selected work</span><h2>Selected <em>projects</em></h2></div>'+ext('All case studies','#work')+'</div></div>'+
     '<div class="rail" id="rail"><div class="rail-track">'+cards+cards.replace(/<a /g,'<a aria-hidden="true" tabindex="-1" ')+'</div></div>'+
     '<div class="wrap"><div class="rail-ctl"><button type="button" id="rail-btn" aria-pressed="false"><span aria-hidden="true">❚❚</span><span>PAUSE</span></button></div></div>'+
@@ -196,13 +199,53 @@ function vContact(){
   '<div class="cbox">'+
     '<div class="crow"><div><span class="mono muted">Email</span><br><b>'+EMAIL+'</b></div><button class="copy" type="button" id="copy">Copy</button></div>'+
     '<a class="crow" href="mailto:'+EMAIL+'"><b>Write an email</b><span class="v">opens your mail app ↗</span></a>'+
+    '<a class="crow" href="#match"><b>Match me to your role</b><span class="v">paste a job description ↗</span></a>'+
     '<a class="crow" href="https://www.linkedin.com/in/shaon-kanti-dhar"><b>LinkedIn</b><span class="v">/in/shaon-kanti-dhar ↗</span></a>'+
     '<a class="crow" href="https://nstu-coding-planet.blogspot.com/"><b>Blog</b><span class="v">NSTU Code Academy ↗</span></a>'+
   '</div></div></div>';
 }
 
+function vMatch(){
+  return '<div class="wrap"><div class="case-hero"><span class="eyebrow">Role matcher</span><h1>Match me to <em>your role</em></h1>'+
+  '<p class="muted" style="max-width:62ch; margin-top:18px; font-size:17px">Paste a job description or a list of requirements. You get a requirement-by-requirement view of what this portfolio backs up with evidence, and what it does not. It never claims a skill that is not on the portfolio.</p></div>'+
+  '<section class="sec" style="padding-top:36px"><div class="match">'+
+    '<div class="match-in"><label for="jd" class="mono muted">Job description or requirements</label>'+
+    '<textarea id="jd" rows="12" maxlength="8000" placeholder="Paste the role here…" spellcheck="false"></textarea>'+
+    '<div class="actions"><button class="btn dark" type="button" id="jd-go">Check the match'+arrow+'</button><button class="btn" type="button" id="jd-ex">Try an example</button><button class="btn" type="button" id="jd-clear">Clear</button></div>'+
+    '<p class="muted mono" style="font-size:12px; margin-top:14px">Runs in your browser. What you paste is not sent anywhere or stored.</p></div>'+
+    '<div class="match-out" id="jd-out" aria-live="polite"><p class="muted">Results appear here.</p></div>'+
+  '</div></section></div>';
+}
+function matchResult(r){
+  if(!r.found && !r.notes.length) return '<p><b>No recognisable requirements found.</b></p><p class="muted" style="margin-top:8px">Paste more of the job description, including the skills and tools it asks for. Or email <a href="mailto:'+EMAIL+'">'+EMAIL+'</a> and describe the role.</p>';
+  var lab={strong:'Direct evidence',some:'Related',none:'Not shown'}, ic={strong:'●',some:'◐',none:'○'};
+  var n={strong:0,some:0,none:0}; r.reqs.forEach(function(q){n[q.status]++});
+  var rows=r.reqs.map(function(q){
+    var ev=q.evidence.map(function(e){return '<a href="'+esc(e.url)+'">'+esc(e.title)+'</a>'+(e.why?' <span class="muted">('+esc(e.why)+')</span>':'')}).join(' · ');
+    return '<li class="m-'+q.status+'"><span class="m-b mono"><span aria-hidden="true">'+ic[q.status]+'</span> '+lab[q.status]+'</span><div><b>'+esc(q.label)+'</b><div class="muted">'+(ev||esc(q.note)||'Nothing on the portfolio shows this.')+'</div></div></li>';
+  }).join('');
+  var notes=r.notes.map(function(q){return '<li class="m-'+q.status+'"><span class="m-b mono"><span aria-hidden="true">'+ic[q.status]+'</span> '+(q.status==='strong'?'Met':'Not met')+'</span><div><b>'+esc(q.label)+'</b><div class="muted">'+esc(q.text)+'</div></div></li>'}).join('');
+  return '<h2 class="m-h">'+n.strong+' of '+r.found+' requirements have direct evidence</h2>'+
+    '<p class="muted">'+n.some+' related, '+n.none+' not shown. Each item links to the page that backs it up.</p>'+
+    '<ul class="m-list">'+rows+notes+'</ul>'+
+    '<div class="actions" style="margin-top:22px"><a class="btn dark" href="mailto:'+EMAIL+'?subject='+encodeURIComponent('Role for Shaon Kanti Dhar')+'">Email Shaon about this role'+arrow+'</a><a class="btn" href="#cv">View CV</a></div>';
+}
+function wireMatch(){
+  var ta=document.getElementById('jd'), out=document.getElementById('jd-out'); if(!ta) return;
+  function go(){
+    var t=ta.value.trim();
+    if(t.length<30){out.innerHTML='<p class="muted">Paste a longer description (at least a few lines) to check.</p>'; return}
+    var idx=window.PortfolioChat.makeIndex(window.PortfolioChat.buildKB({EMAIL:EMAIL,PROJECTS:PROJECTS,ARCHIVE:ARCHIVE,JOBS:JOBS,CAPS:CAPS,CERTS:CERTS,CONTESTS:CONTESTS,NEWS:NEWS,AWARDS:AWARDS,RESEARCH:RESEARCH}));
+    out.innerHTML=matchResult(window.PortfolioChat.matchRole(idx,t));
+    track('match-check','Role matcher check');
+  }
+  document.getElementById('jd-go').addEventListener('click',go);
+  document.getElementById('jd-ex').addEventListener('click',function(){ta.value=window.PortfolioChat.MATCH_EXAMPLE; go()});
+  document.getElementById('jd-clear').addEventListener('click',function(){ta.value=''; out.innerHTML='<p class="muted">Results appear here.</p>'; ta.focus()});
+}
+
 /* ---------- router ---------- */
-var ROUTES={cv:vCV, home:vHome, about:vAbout, research:vResearch, work:vWork, record:vRecord, education:function(){return vRecord('edu')}, recognition:vRecognition, contact:vContact};
+var ROUTES={cv:vCV, home:vHome, about:vAbout, research:vResearch, work:vWork, record:vRecord, education:function(){return vRecord('edu')}, recognition:vRecognition, contact:vContact, match:vMatch};
 var main=document.getElementById('main'), clockT=null, rotT=null;
 function current(){var h=(location.hash||'').slice(1); return h||'home'}
 function render(){
@@ -215,8 +258,8 @@ function render(){
     window.scrollTo(0,0);
     var top=p?'work':(r==='education'?'record':r);
     document.querySelectorAll('#nav a').forEach(function(a){a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+top); if(a.getAttribute('href')==='#'+top) a.setAttribute('aria-current','page')});
-    document.title=(p?p.name+' · ':r!=='home'?(({record:'Experience',education:'Education',recognition:'Awards',cv:'CV'})[r]||r.charAt(0).toUpperCase()+r.slice(1))+' · ':'')+'Shaon Kanti Dhar';
-    closeMenu(); wire();
+    document.title=(p?p.name+' · ':r!=='home'?(({record:'Experience',education:'Education',recognition:'Awards',cv:'CV',match:'Role matcher'})[r]||r.charAt(0).toUpperCase()+r.slice(1))+' · ':'')+'Shaon Kanti Dhar';
+    closeMenu(); wire(); wireMatch();
     track(p?p.id:r, document.title);
   };
   var done=false, run=function(){if(!done){done=true; go()}};
@@ -322,7 +365,7 @@ function copyEmail(){try{navigator.clipboard.writeText(EMAIL).then(function(){to
 
 /* ---------- command palette ---------- */
 var cmd=document.getElementById('cmd'), q=document.getElementById('cmd-q'), ul=document.getElementById('cmd-list'), sel=0, items=[];
-var ALL=[['Home','Page','#home'],['About','Page','#about'],['Research','Page','#research'],['Work','Page','#work'],['Experience & Education','Page','#record'],['Education','Page','#education'],['Awards','Page','#recognition'],['Contact','Page','#contact'],['CV','Page','#cv']]
+var ALL=[['Home','Page','#home'],['About','Page','#about'],['Research','Page','#research'],['Work','Page','#work'],['Experience & Education','Page','#record'],['Education','Page','#education'],['Awards','Page','#recognition'],['Contact','Page','#contact'],['CV','Page','#cv'],['Match me to your role','Page','#match']]
   .concat(PROJECTS.map(function(p){return [p.name,'Case study','#'+p.id]}))
   .concat([['Switch theme','Action',toggleTheme],['Copy email address','Action',copyEmail],['Open LinkedIn','Link','https://www.linkedin.com/in/shaon-kanti-dhar']]);
 function draw(){

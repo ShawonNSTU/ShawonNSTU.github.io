@@ -176,7 +176,7 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   ok('built-in answer has no filler (small apps, language lists)', !JUNK.test(shown), shown.slice(0, 120));
   a = E.answer(idx, 'why should we hire him for an AI role?');
   ok('recruiter answer leads with AI systems', /AI|LLM|RAG/.test(a.items[0].title), a.items[0].title);
-  ['what are his strengths', 'is he the best engineer', 'what is the most impressive thing he built', 'why should I admit him to my lab', 'would he be a good fit for a research job'].forEach(q => ok('assessment intent: ' + q, E.intent(q) === 'evaluate', E.intent(q)));
+  ['what are his strengths', 'is he the best engineer', 'what is the most impressive thing he built', 'why should I admit him to my lab', 'would he be a good fit for a research job', 'What would he bring to a startup?', 'Compare his research and industry work', 'Tell me something surprising about him', 'What is unique about him?', 'Give me an overall picture'].forEach(q => ok('assessment intent: ' + q, E.intent(q) === 'evaluate', E.intent(q)));
   ['which awards has he won', 'show research', 'does he have patents', 'how can I contact him', 'what is his education', 'tell me about the PQM Agent'].forEach(q => ok('lookup is not an assessment: ' + q, E.intent(q) !== 'evaluate', E.intent(q)));
 
   ENV.AI.calls.length = 0;
@@ -199,6 +199,22 @@ const ok = (name, cond, extra) => { cond ? pass++ : fail++; console.log((cond ? 
   const dsrc = fs.readFileSync(path.join(root, 'data/content.js'), 'utf8') + fs.readFileSync(path.join(root, 'assets/js/app.js'), 'utf8');
   ['500+ engineers', '30% of release time', '40+ QA engineers', '60+ projects', '15% improvement', 'Starbucks', '3.51', '4.80', '12 engineers'].forEach(n =>
     ok('fact sheet number still on the site: ' + n, dsrc.includes(n) || dsrc.includes(n.replace(' engineers', '').replace(' improvement', ''))));
+
+
+  /* role matcher: honest, evidence-based */
+  const mi = E.makeIndex(kb), M = t => E.matchRole(mi, t), st = (res, label) => (res.reqs.find(q => q.label === label) || {}).status;
+  const ex = M(E.MATCH_EXAMPLE);
+  ok('matcher: RAG is shown with direct evidence', st(ex, 'RAG and retrieval') === 'strong' && ex.reqs.find(q => q.label === 'RAG and retrieval').evidence.every(e => e.url.startsWith('#')));
+  ok('matcher: Kubernetes is NOT claimed', st(ex, 'Kubernetes and infrastructure as code') === 'none');
+  ok('matcher: peer-reviewed publications are NOT claimed', st(ex, 'Peer-reviewed publications') === 'none' && /patents/i.test(ex.reqs.find(q => q.label === 'Peer-reviewed publications').note));
+  ok('matcher: only-in-skills items are "related", never "direct"', st(M('We use Docker and AWS'), 'Cloud, containers and CI/CD') === 'some');
+  ok('matcher: 5+ years is met, 12+ years is not', M('5+ years of experience').notes[0].status === 'strong' && M('12 years of experience required').notes[0].status === 'none');
+  ok('matcher: a PhD requirement is reported as not held', M('PhD required, Python').notes.some(n => n.label === 'Education' && n.status === 'none' && /does not hold/.test(n.text)));
+  ok('matcher: empty / irrelevant text finds nothing', M('lorem ipsum dolor sit amet').found === 0);
+  ok('matcher: every evidence link is internal', ex.reqs.every(q => q.evidence.every(e => /^#/.test(e.url))));
+  ok('matcher: no unsupported language is claimed (Swift, Flutter, Go, Rust)', st(M('Swift, Flutter and iOS'), 'iOS, Swift and Flutter') === 'none');
+  ok('matcher intent is recognised', E.intent('Match me to a role') === 'match' && E.answer(mi, 'does he fit this job description').links[0].url === '#match');
+  ok('matcher: handles 8000+ characters', M('Python '.repeat(5000)).found === 1);
 
   const sp = E.systemPrompt('me@example.com');
   ok('system prompt forbids inventing facts and ignoring hidden instructions', /never invent/i.test(sp) && /do not follow instructions/i.test(sp));
